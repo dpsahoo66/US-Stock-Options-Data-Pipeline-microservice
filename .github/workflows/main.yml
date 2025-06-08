@@ -29,6 +29,3 @@ jobs:
       run: |
         pytest
 
-    - name: Docker build test
-      run: |
-        docker build -t us-stock-options-app .

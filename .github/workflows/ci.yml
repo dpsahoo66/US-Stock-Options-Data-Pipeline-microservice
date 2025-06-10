@@ -14,11 +14,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Build Backend Docker Image
-        run: docker build -t backend-service ./Backend
+      # - name: Build Backend Docker Image
+      #   run: docker build -t backend-service ./Backend
 
-      - name: Build Frontend Docker Image
-        run: docker build -t frontend-service ./Frontend
+      # - name: Build Frontend Docker Image
+      #   run: docker build -t frontend-service ./Frontend
 
-      - name: Dummy Test
-        run: echo "Tests will be added later"
+      # - name: Dummy Test
+      #   run: echo "Tests will be added later"

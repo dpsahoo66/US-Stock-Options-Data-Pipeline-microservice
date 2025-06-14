@@ -1,23 +1,37 @@
+x-airflow-common:
+  &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile-airflow
+  environment:
+    &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: mysql+pymysql://airflow:airflow@mysql:3306/airflow
+    AIRFLOW__CORE__FERNET_KEY: xtvXdBewG6hZRXZu6prldVc8oRVCpgDDhyABAWYiU8U=
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    mysql:
+      condition: service_healthy
+    kafka:
+      condition: service_started
+
 services:
   airflow:
-    build:
-      context: .
-      dockerfile: Dockerfile-airflow
-    environment:
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=mysql+pymysql://airflow:airflow@mysql:3306/airflow
-      - AIRFLOW__CORE__FERNET_KEY=xtvXdBewG6hZRXZu6prldVc8oRVCpgDDhyABAWYiU8U=
-    volumes:
-      - ./dags:/opt/airflow/dags
-      - ./logs:/opt/airflow/logs
+    <<: *airflow-common
     ports:
       - "8080:8080"
-    depends_on:
-      mysql:
-        condition: service_healthy
-      kafka:
-        condition: service_started
-    entrypoint: ["/bin/bash", "-c", "sleep 10; /entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    entrypoint: ["/entrypoint.sh"]
     networks:
       - stock_pipeline
 
@@ -60,11 +74,17 @@ services:
     build:
       context: ./database_writer_service
       dockerfile: Dockerfile
+    environment:
+      - AZURE_SQL_CONNECTION_STRING=Server=tcp:stock-pipeline-server.database.windows.net,1433;Initial Catalog=StockDataDB;User ID=dbadmin;Password=<your_password>;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=adminpassword
+      - INFLUXDB_ORG=stock_pipeline
+      - INFLUXDB_BUCKET=stock_data
     ports:
       - "8002:8002"
     depends_on:
       - kafka
-      - mysql
       - influxdb
     networks:
       - stock_pipeline
@@ -147,6 +167,11 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "kafka:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - stock_pipeline
 
@@ -157,6 +182,11 @@ services:
       - ZOOKEEPER_TICK_TIME=2000
     ports:
       - "2181:2181"
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - stock_pipeline
 

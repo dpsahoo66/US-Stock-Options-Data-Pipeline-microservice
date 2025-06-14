@@ -1,0 +1,236 @@
+x-airflow-common:
+  &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile-airflow
+  environment:
+    &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: mysql+pymysql://airflow:airflow@mysql:3306/airflow
+    AIRFLOW__CORE__FERNET_KEY: xtvXdBewG6hZRXZu6prldVc8oRVCpgDDhyABAWYiU8U=
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    mysql:
+      condition: service_healthy
+    kafka:
+      condition: service_started
+
+services:
+  airflow:
+    <<: *airflow-common
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - stock_pipeline
+
+  load_balancer:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - data_collector
+    networks:
+      - stock_pipeline
+
+  data_collector:
+    build:
+      context: ./data_collector_service
+      dockerfile: Dockerfile
+    environment:
+      - TWELVEDATA_API_KEY=4954a2a422a84f228c11681b41980848
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka
+    networks:
+      - stock_pipeline
+
+  data_processor:
+    build:
+      context: ./data_processor_service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    depends_on:
+      - kafka
+    networks:
+      - stock_pipeline
+
+  database_writer:
+    build:
+      context: ./database_writer_service
+      dockerfile: Dockerfile
+    environment:
+      - AZURE_SQL_CONNECTION_STRING=Server=tcp:stock-pipeline-server.database.windows.net,1433;Initial Catalog=StockDataDB;User ID=dbadmin;Password=<your_password>;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=adminpassword
+      - INFLUXDB_ORG=stock_pipeline
+      - INFLUXDB_BUCKET=stock_data
+    ports:
+      - "8002:8002"
+    depends_on:
+      - kafka
+      - influxdb
+    networks:
+      - stock_pipeline
+
+  file_writer:
+    build:
+      context: ./file_writer_service
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
+    depends_on:
+      - kafka
+      - minio
+    networks:
+      - stock_pipeline
+
+  monitoring:
+    build:
+      context: ./monitoring_service
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    networks:
+      - stock_pipeline
+
+  observability:
+    build:
+      context: ./observability_service
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8005"
+    depends_on:
+      - prometheus
+      - grafana
+    networks:
+      - stock_pipeline
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_USER=airflow
+      - MYSQL_PASSWORD=airflow
+      - MYSQL_DATABASE=airflow
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - stock_pipeline
+
+  influxdb:
+    image: influxdb:2.7
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword
+      - DOCKER_INFLUXDB_INIT_ORG=stock_pipeline
+      - DOCKER_INFLUXDB_INIT_BUCKET=stock_data
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - stock_pipeline
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "kafka:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stock_pipeline
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stock_pipeline
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - stock_pipeline
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - stock_pipeline
+
+  grafana:
+    image: grafana/grafana:11.2.2
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - stock_pipeline
+
+volumes:
+  mysql_data:
+  influxdb_data:
+  minio_data:
+  grafana_data:
+
+networks:
+  stock_pipeline:
+    driver: bridge

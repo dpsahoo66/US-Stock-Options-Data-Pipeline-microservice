@@ -1,2 +1,2 @@
-django
-djangorestframework
+Django==4.2.16
+requests==2.32.3

@@ -4,7 +4,7 @@ venv/
 *.pyo
 *.pyd
 *.sqlite3
-.env  
+.env/
 .vscode/
 .logs/
 logs/
@@ -14,3 +14,4 @@ logs/
 .prometheus.yml
 airflow_scheduler_service/airflow.cfg
 dags/
+.DS_Store

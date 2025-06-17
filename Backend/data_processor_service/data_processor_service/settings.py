@@ -121,3 +121,13 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'
+KAFKA_TOPICS = {
+    'daily': 'daily-data',
+    '5min': '5min-data',
+    'options': 'options-data',
+    'processed-daily': 'processed-daily-data',
+    'processed-5min': 'processed-5min-data',
+    'processed-options': 'processed-options-data'
+}

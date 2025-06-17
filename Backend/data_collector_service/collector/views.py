@@ -10,13 +10,13 @@ from django.http import JsonResponse
 from collector.utils.symbols import symbols
 import yfinance as yf
 import pandas as pd
+from collector.utils.create_batch import create_batches
+from collector.kafka import kafkaConfig
 
 # Kafka Producer setup
-conf = {'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092')}
-producer = Producer(conf)
+producer = kafkaConfig.create_producer()
 
 
-from collector.util.create_batch import create_batches
 
 def fetch_each_day_data(request):
     """

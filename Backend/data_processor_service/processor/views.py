@@ -1,39 +1,20 @@
-from confluent_kafka import Consumer, Producer, KafkaError
+from confluent_kafka import KafkaError
 import json
 from django.http import JsonResponse
 import logging
 from datetime import datetime, timezone
-
+from processor.kafka import kafkaConfig
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Kafka configuration
-KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'  # Update with your Kafka broker
-CONSUMER_CONFIG = {
-    'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS,
-    'group.id': 'data_processor_group',
-    'auto.offset.reset': 'earliest'
-}
-PRODUCER_CONFIG = {
-    'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS
-}
-
-def create_consumer():
-    """Create and return a Kafka consumer."""
-    return Consumer(CONSUMER_CONFIG)
-
-def create_producer():
-    """Create and return a Kafka producer."""
-    return Producer(PRODUCER_CONFIG)
 
 def RealTimeDataProcessor(request):
     """
     Subscribes to '5min-data' topic, processes real-time 5-minute data,
     and pushes processed data to 'processed-5min-data' topic.
     """
-    consumer = create_consumer()
-    producer = create_producer()
+    consumer = kafkaConfig.create_consumer()
+    producer = kafkaConfig.create_producer()
     consumer.subscribe(['5min-data'])
 
     try:
@@ -74,10 +55,10 @@ def RealTimeDataProcessor(request):
                 logger.error(f"Error processing real-time data: {e}")
                 continue
 
-        return JsonResponse({
-            "status": "success",
-            "message": "Real-time data processing completed"
-        }, status=200)
+            return JsonResponse({
+                "status": "success",
+                "message": "Real-time data processing completed"
+            }, status=200)
 
     except KeyboardInterrupt:
         logger.info("Real-time data processing interrupted")
@@ -92,8 +73,8 @@ def DailyDataProcessor(request):
     Subscribes to 'daily-data' topic, processes daily data,
     and pushes processed data to 'processed-daily-data' topic.
     """
-    consumer = create_consumer()
-    producer = create_producer()
+    consumer = kafkaConfig.create_consumer()
+    producer = kafkaConfig.create_producer()
     consumer.subscribe(['daily-data'])
 
     try:
@@ -152,8 +133,8 @@ def OptionDataProcessor(request):
     Subscribes to 'options-data' topic, processes options data,
     and pushes processed data to 'processed-options-data' topic.
     """
-    consumer = create_consumer()
-    producer = create_producer()
+    consumer = kafkaConfig.create_consumer()
+    producer = kafkaConfig.create_producer()
     consumer.subscribe(['options-data'])
 
     try:

@@ -4,9 +4,10 @@ venv/
 *.pyo
 *.pyd
 *.sqlite3
-.env  
+.env/
 .vscode/
 .logs/
 logs/
 .nginx.conf
 .prometheus.yml
+.DS_Store

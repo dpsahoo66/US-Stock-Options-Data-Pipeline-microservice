@@ -8,10 +8,6 @@ venv/
 .vscode/
 .logs/
 logs/
-.Dockerfile-airflow
-.entrypoint.sh
 .nginx.conf
 .prometheus.yml
-airflow_scheduler_service/airflow.cfg
-dags/
 .DS_Store

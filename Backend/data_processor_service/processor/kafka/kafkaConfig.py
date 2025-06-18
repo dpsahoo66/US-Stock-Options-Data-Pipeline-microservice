@@ -18,3 +18,5 @@ def create_consumer():
 def create_producer():
     """Create and return a Kafka producer."""
     return Producer(PRODUCER_CONFIG)
+
+

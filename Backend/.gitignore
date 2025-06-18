@@ -11,3 +11,4 @@ logs/
 .nginx.conf
 .prometheus.yml
 .DS_Store
+migrations/

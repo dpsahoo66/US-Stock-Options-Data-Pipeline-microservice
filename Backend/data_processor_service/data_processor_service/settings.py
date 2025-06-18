@@ -126,9 +126,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'
 KAFKA_TOPICS = {
     'daily': 'daily-data',
-    '5min': '5min-data',
+    '15min': '15min-data',
     'options': 'options-data',
     'processed-daily': 'processed-daily-data',
-    'processed-5min': 'processed-5min-data',
+    'processed-15min': 'processed-15min-data',
     'processed-options': 'processed-options-data'
 }

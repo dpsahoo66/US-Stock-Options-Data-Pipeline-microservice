@@ -3,6 +3,6 @@ FROM python:3.9-slim
 WORKDIR /app 
 COPY requirements.txt . 
 RUN pip install --no-cache-dir -r requirements.txt 
-COPY data_processor_service . 
+COPY . .
 EXPOSE 8001 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
+CMD ["python", "manage.py", "run_kafka_processor"]

@@ -1,5 +1,5 @@
-from confluent_kafka import Consumer, Producer, KafkaError
-
+from confluent_kafka import Consumer, Producer
+from django.conf import settings
 # Kafka configuration
 KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'  # Update with your Kafka broker
 CONSUMER_CONFIG = {

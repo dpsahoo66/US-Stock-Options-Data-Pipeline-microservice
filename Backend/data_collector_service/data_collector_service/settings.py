@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -129,6 +129,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'
 KAFKA_TOPICS = {
     'daily': 'daily-data',
-    '5min': '5min-data',
+    '15min': '15min-data',
     'options': 'options-data'
 }

@@ -5,8 +5,10 @@ import logging
 from processor.kafka import kafkaConfig
 from django.conf import settings
 
-from processor.handler import DailyDataProcessor, RealTimeDataProcessor, OptionDataProcessor
-
+from processor.handler.DailyDataProcessor import DailyDataProcessor
+from processor.handler.RealTimeDataProcessor import RealTimeDataProcessor
+from processor.handler.OptionDataProcessor import OptionDataProcessor
+import logging
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,7 +42,6 @@ class Command(BaseCommand):
 
             try:
                 data = json.loads(raw_value)
-                print(data)
             except json.JSONDecodeError as e:
                 logger.error(f"Invalid JSON: {e}")
                 continue

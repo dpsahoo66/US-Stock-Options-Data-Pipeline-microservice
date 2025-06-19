@@ -1,0 +1,42 @@
+$primary-bg: #1A1F36;
+$accent-color: #6B48FF;
+$text-color: #D3D8E8;
+$border-color: #4A5D7A;
+$secondary-accent: #4ECDC4;
+$neutral-highlight: #A3BFFA;
+$bg-accent: #2A3550;
+
+.dashboard-container {
+  margin-left: 250px; /* Match side-nav width */
+  margin-top: 60px; /* Match navbar height */
+  padding: 0;
+  background-color: $bg-accent;
+  min-height: calc(100vh - 60px); /* Full height minus navbar */
+  width: calc(100vw - 250px); /* Full width minus side-nav */
+  overflow: hidden;
+
+  .chart-container {
+    width: 100%;
+    height: 400px;
+    background-color: $primary-bg;
+    border: 1px solid $border-color;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    margin: 0;
+
+    #stock {
+      height: 100%;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+
+      .highcharts-container {
+        height: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+    }
+  }
+}

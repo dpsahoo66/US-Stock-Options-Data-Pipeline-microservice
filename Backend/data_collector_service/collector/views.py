@@ -12,11 +12,18 @@ import yfinance as yf
 import pandas as pd
 from collector.utils.create_batch import create_batches
 from collector.kafka import kafkaConfig
+from django.conf import settings
+import logging
+
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 # Kafka Producer setup
 producer = kafkaConfig.create_producer()
-
-
+# kafkaConfig.create_kafka_topics()
 
 def fetch_each_day_data(request):
     """
@@ -53,10 +60,9 @@ def fetch_each_day_data(request):
                     continue
                 else:
                     batch_result[symbol] = data
-
                     # Push to Kafka
-                    # producer.produce('daily-data', value=json.dumps(data).encode('utf-8'))
-                    # producer.flush()
+                    producer.produce(settings.KAFKA_TOPICS['daily'], value=json.dumps(data).encode('utf-8'))
+                    producer.flush()
             else:
                 batch_result[symbol] = {
                     "error": f"Failed: {response.status_code}",
@@ -107,8 +113,8 @@ def fetch_last_15min_data(request):
                 else:
                     batch_data[symbol] = data
                     # Optionally send to Kafka
-                    # producer.produce('15min-data', value=json.dumps(data).encode('utf-8'))
-                    # producer.flush()
+                    producer.produce(settings.KAFKA_TOPICS['15min'], value=json.dumps(data).encode('utf-8'))
+                    producer.flush()
             else:
                 batch_data[symbol] = {
                     "error": f"Failed: {response.status_code}",
@@ -116,7 +122,7 @@ def fetch_last_15min_data(request):
                 }
 
         all_data.append(batch_data)
-        # time.sleep(60)  # Optional delay: wait 1 min before next batch
+        time.sleep(60)  # Optional delay: wait 1 min before next batch
 
     return JsonResponse({
         "status": "success",
@@ -176,8 +182,12 @@ def fetch_option_data(request):
                     calls_df = pd.concat(all_calls, ignore_index=True)
                     if not calls_df.empty:
                         data_batch = calls_df.to_dict(orient='records')
-                        # producer.produce('options-data', value=json.dumps(data_batch).encode('utf-8'))
-                        # producer.flush()
+
+                        data_value = serialize_safely(data_batch)
+                        logger.info(data_value)
+                        producer.produce(settings.KAFKA_TOPICS['options'], value=data_value)
+                        producer.flush()
+                        
                         batch_result[symbol] = {
                             "status": "success",
                             "message": f"{len(data_batch)} option records",
@@ -208,3 +218,23 @@ def fetch_option_data(request):
         "message": "Options data fetched for all symbols in batches.",
         "data": full_result
     }, status=200)
+
+
+
+def serialize_safely(data):
+    def clean_value(val):
+        if isinstance(val, (pd.Timestamp, np.datetime64)):
+            return str(val)
+        elif isinstance(val, (np.int64, np.float64)):
+            return val.item()
+        return val
+
+    if isinstance(data, pd.DataFrame):
+        data = data.to_dict(orient='records')
+
+    for record in data:
+        for k, v in record.items():
+            record[k] = clean_value(v)
+
+    return json.dumps(data)
+

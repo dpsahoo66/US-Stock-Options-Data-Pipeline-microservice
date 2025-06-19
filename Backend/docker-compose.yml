@@ -20,7 +20,6 @@ x-airflow-common:
       condition: service_healthy
     kafka:
       condition: service_started
-
 services:
   airflow:
     <<: *airflow-common
@@ -51,7 +50,9 @@ services:
       context: ./data_collector_service
       dockerfile: Dockerfile
     environment:
-      - TWELVEDATA_API_KEY=4954a2a422a84f228c11681b41980848
+      - TWELVE_DATA_API_KEY=4954a2a422a84f228c11681b41980848
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - DJANGO_SECRET_KEY="django-insecure-k^c404!2*woj(h(+ek*e#=0sh^qrjw9y-g34m^*qy=^=!43v%^"
     ports:
       - "8000:8000"
     depends_on:
@@ -159,10 +160,11 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
     depends_on:
       - zookeeper
     ports:
@@ -175,6 +177,32 @@ services:
     networks:
       - stock_pipeline
 
+  kafka-init:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - kafka
+    entrypoint: ["/bin/bash", "-c"]
+    command: |
+      "
+      for i in {1..30}; do
+        kafka-broker-api-versions --bootstrap-server kafka:9092 && break
+        echo 'Waiting for Kafka to be ready...'
+        sleep 5
+      done
+
+      kafka-topics --create --topic daily-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic 15min-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic options-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic processed-daily --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic processed-15min --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic processed-options --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+
+      echo 'Kafka topics created!'
+      "
+    networks:
+      - stock_pipeline
+
+      
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     environment:
@@ -183,7 +211,7 @@ services:
     ports:
       - "2181:2181"
     healthcheck:
-      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181"]
       interval: 10s
       timeout: 5s
       retries: 5

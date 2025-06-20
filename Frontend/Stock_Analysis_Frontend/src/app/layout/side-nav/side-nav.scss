@@ -1,9 +1,10 @@
 @use 'sass:color';
 
-$primary-bg: #1A1F36;
-$accent-color: #6B48FF;
-$text-color: #D3D8E8;
-$border-color: #4A5D7A;
+$primary-bg: #1A1A1A;
+$accent-color: #272727;
+$text-color: #D9E1FA;
+$text-color-selected: #CB3CFF;
+$border-color: #313131;
 $secondary-accent: #4ECDC4;
 $neutral-highlight: #A3BFFA;
 $bg-accent: #2A3550;
@@ -18,9 +19,11 @@ $bg-accent: #2A3550;
 
 mat-nav-list {
   background-color: $primary-bg;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
   color: $text-color;
   height: 100%;
-  width: 250px;
+  width: 210px;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -36,7 +39,7 @@ mat-nav-list {
     align-items: center;
     padding: 20px 16px;
     color: $text-color;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 500;
     text-transform: uppercase;
     text-decoration: none;
@@ -50,12 +53,11 @@ mat-nav-list {
     }
 
     &:hover {
-      color: $accent-color;
+      color: $text-color;
     }
 
     &.active {
-      background-color: $accent-color;
-      color: $primary-bg;
+      color: $text-color-selected;
       font-weight: 700;
     }
   }

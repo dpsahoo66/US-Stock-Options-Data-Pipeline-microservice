@@ -1,3 +1,56 @@
-.sidenav-container {
+html, body {
   height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; // Prevents unwanted root scrollbars
+}
+
+.layout-root {
+  display: flex;
+  height: 100vh;
+  overflow: hidden; // Prevent scrollbars on root
+}
+
+.sidenav-container {
+  // width: 240px;
+  min-width: 60px;
+  transition: width 0.3s ease;
+  background-color: #000;
+
+  &.collapsed {
+    width: 60px;
+  }
+
+  mat-sidenav {
+    width: 100%;
+    background-color: #000;
+    color: #fff;
+    border: none;
+  }
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; // Important: prevents main area overflow
+}
+
+app-navbar {
+  flex-shrink: 0;
+  height: 64px;
+  background-color: #222;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto; // Allow vertical scrolling only inside content
+  padding: 20px;
+  background-color: #121212;
+  color: white;
 }

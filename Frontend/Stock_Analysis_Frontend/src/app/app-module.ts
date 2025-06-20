@@ -8,6 +8,7 @@ import { SideNav } from './layout/side-nav/side-nav';
 import { Dashboard } from './dashboard/dashboard';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatInputModule } from '@angular/material/input';
@@ -31,6 +32,7 @@ import { OptionsData } from './options-data/options-data';
     AppRoutingModule,
     MatToolbarModule,
     MatSidenavModule,
+    MatCardModule,
     MatIconModule,
     MatListModule,
     MatInputModule,

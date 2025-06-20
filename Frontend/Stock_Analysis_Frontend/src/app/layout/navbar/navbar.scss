@@ -1,6 +1,6 @@
-$primary-bg: #1A1F36;
-$accent-color: #D3D8E8;
-$text-color: #6B48FF;
+$primary-bg: #1A1A1A;
+$accent-color: #272727;
+$text-color: #D9E1FA;
 $border-color: #4A5D7A;
 $secondary-accent: #4ECDC4;
 $neutral-highlight: #A3BFFA;
@@ -23,9 +23,9 @@ mat-toolbar {
   z-index: 1000; /* Ensure it stays above other elements */
 
   .title {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 600;
-    color: $accent-color;
+    color: $text-color;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
@@ -37,7 +37,7 @@ mat-toolbar {
   .search-field {
     width: 300px;
     margin-right: 8px;
-    background-color: $bg-accent;
+    background-color: $accent-color;
     border: 1px solid $border-color;
     border-radius: 4px;
     padding: 8px 12px;
@@ -56,7 +56,7 @@ mat-toolbar {
   }
 
   button {
-    background-color: $accent-color;
+    background-color: 'white';
     color: $primary-bg;
     border: none;
     padding: 8px 16px;

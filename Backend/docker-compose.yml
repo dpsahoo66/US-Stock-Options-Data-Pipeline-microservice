@@ -6,7 +6,7 @@ x-airflow-common:
     environment:
       &airflow-common-env
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgres://avnadmin:AVNS_OjtfUwIxNrdCZP40bsW@pg-3aceab4a-dash-gtd.g.aivencloud.com:24207/AirflowDB?sslmode=require
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
       AIRFLOW__CORE__FERNET_KEY: xtvXdBewG6hZRXZu6prldVc8oRVCpgDDhyABAWYiU8U=
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
@@ -90,7 +90,7 @@ services:
       context: ./database_writer_service
       dockerfile: Dockerfile
     environment:
-      - AZURE_SQL_CONNECTION_STRING=Driver={ODBC Driver 18 for SQL Server};Server=tcp:dash-gtd.database.windows.net,1433;Database=us_stock_options_db;Uid=dash_gtd;Pwd=wearethebest@69;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=60;
+      - AZURE_SQL_CONNECTION_STRING=${AZURE_SQL_CONNECTION_STRING}
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - KAFKA_TOPICS_DAILY=daily
       - KAFKA_TOPICS_15MIN=15min

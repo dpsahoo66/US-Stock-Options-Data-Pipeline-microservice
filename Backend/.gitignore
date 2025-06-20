@@ -4,7 +4,6 @@ venv/
 *.pyo
 *.pyd
 *.sqlite3
-.env/
 .vscode/
 .logs/
 logs/
@@ -12,3 +11,7 @@ logs/
 .prometheus.yml
 .DS_Store
 migrations/
+Demo/
+.env/
+init-db.sql/
+Backend/.env

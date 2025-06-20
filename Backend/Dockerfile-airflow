@@ -5,16 +5,20 @@ WORKDIR /opt/airflow
 
 # Install system dependencies as root
 USER root
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     python3-dev \
-    && apt-get clean
+    libpq-dev \
+    postgresql-client \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy entrypoint script and make it executable as root
+# Copy CA certificate and entrypoint script
+COPY ca.pem /ca.pem
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Switch to airflow user for remaining operations
+# Switch to airflow user
 USER airflow
 
 # Install Python dependencies
@@ -28,10 +32,9 @@ COPY dags ./dags
 # Set environment variables for Airflow
 ENV AIRFLOW__CORE__LOAD_EXAMPLES=False
 ENV AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
-ENV AIRFLOW__SCHEDULER__SCHEDULE_INTERVAL=300
 
-# Expose Airflow webserver and scheduler ports
+# Expose Airflow webserver port
 EXPOSE 8080
 
-# Use custom entrypoint to initialize Airflow
+# Use custom entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

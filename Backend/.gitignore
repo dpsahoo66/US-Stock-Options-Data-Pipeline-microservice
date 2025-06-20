@@ -13,3 +13,4 @@ logs/
 migrations/
 Demo/
 init-db.sql/
+Backend/.env

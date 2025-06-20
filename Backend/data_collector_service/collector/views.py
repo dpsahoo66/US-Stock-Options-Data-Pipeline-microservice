@@ -219,7 +219,72 @@ def fetch_option_data(request):
         "data": full_result
     }, status=200)
 
+def fetch_historical_data(request):
+    """
+    Fetches 10 years of daily historical data for multiple symbols (in batches of 8) from Twelve Data API.
+    Publishes data to Kafka topic 'raw_stock_data'.
+    """
+    producer = kafkaConfig.create_producer()
+    URL = "https://api.twelvedata.com/time_series"
+    api_key = os.getenv('TWELVE_DATA_API_KEY')
+    end_date = datetime.now(timezone.utc)
+    start_date = end_date - timedelta(days=365 * 1)  # 10 years ago
+    all_data = []
 
+    for batch in create_batches(symbols, batch_size=8):
+        batch_data = {}
+        for symbol in batch:
+            current_start = start_date
+            symbol_data = []
+            while current_start < end_date:
+                current_end = min(current_start + timedelta(days=365), end_date)  # 1 year at a time
+                params = {
+                    "symbol": symbol,
+                    "interval": "1day",
+                    "start_date": current_start.strftime("%Y-%m-%d"),
+                    "end_date": current_end.strftime("%Y-%m-%d"),
+                    "apikey": api_key,
+                    "outputsize": 5000
+                }
+
+                try:
+                    response = requests.get(URL, params=params)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get("code") == 400 or "values" not in data:
+                            batch_data[symbol] = {"error": data.get("message", "No data available")}
+                            logger.error("API error for %s: %s", symbol, batch_data[symbol]["error"])
+                            continue
+                        else:
+                            batch_data[symbol] = data
+                            for record in data["values"]:
+                                record["symbol"] = symbol
+                                producer.produce(settings.KAFKA_TOPICS["daily"], value=json.dumps(record).encode("utf-8"))
+                                producer.flush()
+                                symbol_data.append(record)
+                    else:
+                        batch_data[symbol] = {
+                            "error": f"Failed: {response.status_code}",
+                            "details": response.text
+                        }
+                        logger.error("Request failed for %s: %s", symbol, response.text)
+                except requests.RequestException as e:
+                    batch_data[symbol] = {"error": str(e)}
+                    logger.error("Request exception for %s: %s", symbol, e)
+
+                current_start = current_end + timedelta(days=1)
+                time.sleep(1)  # Avoid API rate limits
+
+            logger.info("Published %d records for %s", len(symbol_data), symbol)
+            all_data.append(batch_data)
+        time.sleep(60)  # Wait 1 min between batches
+
+    logger.info("Data collection complete")
+    return JsonResponse({
+        "status": "success",
+        "message": "Fetched 10 years of daily historical data for all symbols in batches",
+        "data": all_data
+    }, status=200)
 
 def serialize_safely(data):
     def clean_value(val):

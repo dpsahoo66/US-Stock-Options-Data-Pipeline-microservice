@@ -1,25 +1,28 @@
 x-airflow-common:
   &airflow-common
-  build:
-    context: .
-    dockerfile: Dockerfile-airflow
-  environment:
-    &airflow-common-env
-    AIRFLOW__CORE__EXECUTOR: LocalExecutor
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: mysql+pymysql://airflow:airflow@mysql:3306/airflow
-    AIRFLOW__CORE__FERNET_KEY: xtvXdBewG6hZRXZu6prldVc8oRVCpgDDhyABAWYiU8U=
-    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
-    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
-  volumes:
-    - ./dags:/opt/airflow/dags
-    - ./logs:/opt/airflow/logs
-  user: "${AIRFLOW_UID:-50000}:0"
-  depends_on:
-    mysql:
-      condition: service_healthy
-    kafka:
-      condition: service_started
+    build:
+      context: .
+      dockerfile: Dockerfile-airflow
+    environment:
+      &airflow-common-env
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgres://avnadmin:AVNS_OjtfUwIxNrdCZP40bsW@public-pg-3aceab4a-dash-gtd.g.aivencloud.com:24207/defaultdb?sslmode=verify-ca&sslrootcert=/ca.pem
+      AIRFLOW__CORE__FERNET_KEY: xtvXdBewG6hZRXZu6prldVc8oRVCpgDDhyABAWYiU8U=
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      AIRFLOW__CORE__SQL_ALCHEMY_POOL_ENABLED: 'True'
+      AIRFLOW__CORE__SQL_ALCHEMY_POOL_SIZE: 5
+      AIRFLOW__CORE__SQL_ALCHEMY_MAX_OVERFLOW: 10
+      AIRFLOW__CORE__SQL_ALCHEMY_POOL_RECYCLE: 1800
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./ca.pem:/ca.pem
+    user: "${AIRFLOW_UID:-50000}:0"
+    depends_on:
+      kafka:
+        condition: service_started
 services:
   airflow:
     <<: *airflow-common
@@ -34,23 +37,6 @@ services:
     networks:
       - stock_pipeline
 
-  
-
-  data_collector:
-    build:
-      context: ./data_collector_service
-      dockerfile: Dockerfile
-    environment:
-      - TWELVE_DATA_API_KEY=4954a2a422a84f228c11681b41980848
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - DJANGO_SECRET_KEY="django-insecure-k^c404!2*woj(h(+ek*e#=0sh^qrjw9y-g34m^*qy=^=!43v%^"
-    ports:
-      - "8000:8000"
-    depends_on:
-      - kafka
-    networks:
-      - stock_pipeline
-
   load_balancer:
     image: nginx:latest
     volumes:
@@ -61,11 +47,37 @@ services:
       - data_collector
     networks:
       - stock_pipeline
+
+  data_collector:
+    build:
+      context: ./data_collector_service
+      dockerfile: Dockerfile
+    environment:
+      - TWELVE_DATA_API_KEY=4954a2a422a84f228c11681b41980848
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_TOPICS_DAILY=daily
+      - KAFKA_TOPICS_15MIN=15min
+      - KAFKA_TOPICS_OPTIONS=options
+      - DJANGO_SECRET_KEY="django-insecure-k^c404!2*woj(h(+ek*e#=0sh^qrjw9y-g34m^*qy=^=!43v%^"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka
+    networks:
+      - stock_pipeline
   
   data_processor:
     build:
       context: ./data_processor_service
       dockerfile: Dockerfile
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_TOPICS_DAILY=daily
+      - KAFKA_TOPICS_15MIN=15min
+      - KAFKA_TOPICS_OPTIONS=options
+      - KAFKA_TOPICS_PROCESSED_DAILY=processed-daily
+      - KAFKA_TOPICS_PROCESSED_15MIN=processed-15min
+      - KAFKA_TOPICS_PROCESSED_OPTIONS=processed-options
     ports:
       - "8001:8001"
     depends_on:
@@ -78,8 +90,14 @@ services:
       context: ./database_writer_service
       dockerfile: Dockerfile
     environment:
-      - AZURE_SQL_CONNECTION_STRING=Server=tcp:stock-pipeline-server.database.windows.net,1433;Initial Catalog=StockDataDB;User ID=dbadmin;Password=<your_password>;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
+      - AZURE_SQL_CONNECTION_STRING=Driver={ODBC Driver 18 for SQL Server};Server=tcp:dash-gtd.database.windows.net,1433;Database=us_stock_options_db;Uid=dash_gtd;Pwd=wearethebest@69;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=60;
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_TOPICS_DAILY=daily
+      - KAFKA_TOPICS_15MIN=15min
+      - KAFKA_TOPICS_OPTIONS=options
+      - KAFKA_TOPICS_PROCESSED_DAILY=processed-daily
+      - KAFKA_TOPICS_PROCESSED_15MIN=processed-15min
+      - KAFKA_TOPICS_PROCESSED_OPTIONS=processed-options
       - INFLUXDB_URL=http://influxdb:8086
       - INFLUXDB_TOKEN=adminpassword
       - INFLUXDB_ORG=stock_pipeline
@@ -96,6 +114,11 @@ services:
     build:
       context: ./file_writer_service
       dockerfile: Dockerfile
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_TOPICS_PROCESSED_DAILY=processed-daily
+      - KAFKA_TOPICS_PROCESSED_15MIN=processed-15min
+      - KAFKA_TOPICS_PROCESSED_OPTIONS=processed-options
     ports:
       - "8003:8003"
     depends_on:
@@ -122,25 +145,6 @@ services:
     depends_on:
       - prometheus
       - grafana
-    networks:
-      - stock_pipeline
-
-  mysql:
-    image: mysql:8.0
-    environment:
-      - MYSQL_USER=airflow
-      - MYSQL_PASSWORD=airflow
-      - MYSQL_DATABASE=airflow
-      - MYSQL_ROOT_PASSWORD=rootpassword
-    volumes:
-      - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
     networks:
       - stock_pipeline
 

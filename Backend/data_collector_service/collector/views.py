@@ -35,8 +35,14 @@ def fetch_each_day_data(request):
 
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     tomorrow = (datetime.now(timezone.utc) + timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    logger.info(f"today: {today}")
+    logger.info(f"tomorrow: {tomorrow}")
 
     all_results = []
+
+    logger.info(f"all_results: {all_results}")
+
 
     for batch in create_batches(symbols, batch_size=8):
         batch_result = {}
@@ -52,24 +58,36 @@ def fetch_each_day_data(request):
             }
 
             response = requests.get(URL, params=params)
+            logger.info(f"response: {response}")
 
             if response.status_code == 200:
                 data = response.json()
+
+                logger.info(f"Fetched data type {type(data)}: {data} {type(data)}")
+
                 if data.get('code') == 400:
                     batch_result[symbol] = {"error": "No data available"}
                     continue
                 else:
                     batch_result[symbol] = data
                     # Push to Kafka
-                    producer.produce(settings.KAFKA_TOPICS['daily'], value=json.dumps(data).encode('utf-8'))
+
+                    data_value=json.dumps(data).encode('utf-8')
+
+                    logger.info(f"Before Pushing to kafka {data_value}")
+
+                    producer.produce(settings.KAFKA_TOPICS['daily'], value=data_value)
                     producer.flush()
             else:
                 batch_result[symbol] = {
                     "error": f"Failed: {response.status_code}",
                     "details": response.text
                 }
+        
 
         all_results.append(batch_result)
+        logger.info(f"all_result: {all_results}")
+
         time.sleep(60)  # Wait 1 second before next batch
 
     return JsonResponse({

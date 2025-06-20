@@ -34,6 +34,7 @@ class DataPreprocessor:
         Returns:
             Processed data dictionary
         """
+        logger.info(f"Inside preprocess stock data")
         try:
             if not data or 'values' not in data:
                 logger.error("Invalid data structure: missing 'values' key")

@@ -6,7 +6,7 @@ x-airflow-common:
     environment:
       &airflow-common-env
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgres://avnadmin:AVNS_OjtfUwIxNrdCZP40bsW@public-pg-3aceab4a-dash-gtd.g.aivencloud.com:24207/defaultdb?sslmode=verify-ca&sslrootcert=/ca.pem
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgres://avnadmin:AVNS_OjtfUwIxNrdCZP40bsW@pg-3aceab4a-dash-gtd.g.aivencloud.com:24207/AirflowDB?sslmode=require
       AIRFLOW__CORE__FERNET_KEY: xtvXdBewG6hZRXZu6prldVc8oRVCpgDDhyABAWYiU8U=
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'

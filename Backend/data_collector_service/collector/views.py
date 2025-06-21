@@ -1,25 +1,23 @@
+from datetime import datetime, timedelta, timezone
 from django.shortcuts import render
+from django.http import JsonResponse
+from django.conf import settings
+from datetime import datetime
+import yfinance as yf
+import pandas as pd
+import logging
 import requests
 import os
 import json
-from confluent_kafka import Producer
-from datetime import datetime
-from datetime import datetime, timedelta, timezone
 import time
-from django.http import JsonResponse
-from collector.utils.symbols import symbols
-import yfinance as yf
-import pandas as pd
-from collector.utils.create_batch import create_batches
-from collector.kafka import kafkaConfig
-from django.conf import settings
-import logging
 
+from collector.utils.create_batch import create_batches
+from collector.utils.symbols import symbols
+from collector.kafka import kafkaConfig
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 # Kafka Producer setup
 producer = kafkaConfig.create_producer()
@@ -28,8 +26,11 @@ producer = kafkaConfig.create_producer()
 def fetch_each_day_data(request):
     """
     Fetches daily data for all symbols in batches and pushes each to Kafka.
-    One batch per second (batch size = 8).
+    One batch per minute (batch size = 8).
     """
+
+    logger.info(f"Scheduler Scheduled Job for Fetching Daily Data")
+
     URL = "https://api.twelvedata.com/time_series"
     api_key = os.getenv('TWELVE_DATA_API_KEY')
 
@@ -40,9 +41,6 @@ def fetch_each_day_data(request):
     logger.info(f"tomorrow: {tomorrow}")
 
     all_results = []
-
-    logger.info(f"all_results: {all_results}")
-
 
     for batch in create_batches(symbols, batch_size=8):
         batch_result = {}
@@ -58,14 +56,15 @@ def fetch_each_day_data(request):
             }
 
             response = requests.get(URL, params=params)
-            logger.info(f"response: {response}")
+            logger.info(f"Response: {response}")
 
             if response.status_code == 200:
                 data = response.json()
 
-                logger.info(f"Fetched data type {type(data)}: {data} {type(data)}")
-
                 if data.get('code') == 400:
+
+                    logger.info(f"400 Error: {data}")
+
                     batch_result[symbol] = {"error": "No data available"}
                     continue
                 else:
@@ -74,7 +73,7 @@ def fetch_each_day_data(request):
 
                     data_value=json.dumps(data).encode('utf-8')
 
-                    logger.info(f"Before Pushing to kafka {data_value}")
+                    logger.info(f"Passing fetched data to daily-data Producer: {data_value}")
 
                     producer.produce(settings.KAFKA_TOPICS['daily'], value=data_value)
                     producer.flush()
@@ -84,9 +83,7 @@ def fetch_each_day_data(request):
                     "details": response.text
                 }
         
-
         all_results.append(batch_result)
-        logger.info(f"all_result: {all_results}")
 
         time.sleep(60)  # Wait 1 second before next batch
 
@@ -101,11 +98,15 @@ def fetch_last_15min_data(request):
     """
     Fetches last 15 minutes data for multiple symbols (in batches of 8) from Twelve Data API.
     """
+    logger.info(f"Scheduler Scheduled Job for Fetching 15 minute interval Data")
 
     URL = "https://api.twelvedata.com/time_series"
     api_key = os.getenv('TWELVE_DATA_API_KEY')
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     tomorrow = (datetime.now(timezone.utc) + timedelta(days=1)).strftime('%Y-%m-%d')
+
+    logger.info(f"today: {today}")
+    logger.info(f"tomorrow: {tomorrow}")
 
     all_data = []
 
@@ -123,15 +124,24 @@ def fetch_last_15min_data(request):
 
             response = requests.get(URL, params=params)
 
+            logger.info(f"Response: {response}")
+
             if response.status_code == 200:
                 data = response.json()
+
                 if data.get('code') == 400:
+                    logger.info(f"400 Error: {data}")
+
                     batch_data[symbol] = {"error": "No data available"}
                     continue
                 else:
                     batch_data[symbol] = data
-                    # Optionally send to Kafka
-                    producer.produce(settings.KAFKA_TOPICS['15min'], value=json.dumps(data).encode('utf-8'))
+
+                    data_value=json.dumps(data).encode('utf-8')
+
+                    logger.info(f"Passing fetched data to 15min-data Producer: {data_value}")
+
+                    producer.produce(settings.KAFKA_TOPICS['15min'], value=data_value)
                     producer.flush()
             else:
                 batch_data[symbol] = {
@@ -156,12 +166,24 @@ def fetch_option_data(request):
     cutoff = today + timedelta(days=65)
     full_result = []
 
+    logger.info(f"today: {today}")
+    logger.info(f"cutoff: {cutoff}")
+
     for batch in create_batches(symbols, batch_size=8):
         batch_result = {}
         for symbol in batch:
-            try:
+            # try:
+                logger.info(f"before ticker")
+
                 ticker = yf.Ticker(symbol)
+
+                logger.info(f"after ticker")
+                logger.info(f"ticker.options: {ticker.options}")
+
                 expirations = ticker.options
+
+                logger.info(f"after expirations")
+
                 if not expirations:
                     batch_result[symbol] = {
                         "status": "error",
@@ -169,14 +191,16 @@ def fetch_option_data(request):
                     }
                     continue
 
+                logger.info(f"expirations: {expirations}")
+
                 valid_expirations = []
                 for exp in expirations:
-                    try:
+                    # try:
                         exp_date = datetime.strptime(exp, "%Y-%m-%d").date()
                         if today <= exp_date <= cutoff:
                             valid_expirations.append(exp)
-                    except Exception as e:
-                        print(f"Invalid expiration format for {symbol}: {exp} — {e}")
+                    # except Exception as e:
+                    #     print(f"Invalid expiration format for {symbol}: {exp} — {e}")
 
                 if not valid_expirations:
                     batch_result[symbol] = {
@@ -184,17 +208,21 @@ def fetch_option_data(request):
                         "message": "No valid expirations in next 60 days."
                     }
                     continue
+                
+                logger.info(f"valid_expirations: {valid_expirations}")
 
                 all_calls = []
                 for expiry in valid_expirations:
-                    try:
+                    # try:
                         opt_chain = ticker.option_chain(expiry)
                         calls = opt_chain.calls.copy()
                         calls["expirationDate"] = expiry
                         all_calls.append(calls)
                         print(f"{symbol}: Fetched {len(calls)} calls for {expiry}")
-                    except Exception as e:
-                        print(f"{symbol}: Error fetching data for {expiry}: {e}")
+                    # except Exception as e:
+                    #     print(f"{symbol}: Error fetching data for {expiry}: {e}")
+
+                logger.info(f"all_calls: {all_calls}")
 
                 if all_calls:
                     calls_df = pd.concat(all_calls, ignore_index=True)
@@ -202,7 +230,7 @@ def fetch_option_data(request):
                         data_batch = calls_df.to_dict(orient='records')
 
                         data_value = serialize_safely(data_batch)
-                        logger.info(data_value)
+                        logger.info(f"Passing fetched data to option-data Producer: {data_value}")
                         producer.produce(settings.KAFKA_TOPICS['options'], value=data_value)
                         producer.flush()
                         
@@ -222,11 +250,11 @@ def fetch_option_data(request):
                         "message": "No valid expirations with data"
                     }
 
-            except Exception as e:
-                batch_result[symbol] = {
-                    "status": "error",
-                    "message": f"Unexpected error: {e}"
-                }
+            # except Exception as e:
+            #     batch_result[symbol] = {
+            #         "status": "error",
+            #         "message": f"Unexpected error: {e}"
+            #     }
 
         full_result.append(batch_result)
         time.sleep(5) 

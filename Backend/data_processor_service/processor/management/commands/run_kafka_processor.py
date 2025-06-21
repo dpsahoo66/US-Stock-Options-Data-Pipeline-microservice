@@ -27,7 +27,7 @@ class Command(BaseCommand):
         ])
 
         logger.info("Kafka processor started. Listening for messages...")
-        logger.info(f"Inside Processor")
+        logger.info(f"INSIDE DATA PROCESSOR")
 
         while True:
             msg = consumer.poll(1.0)
@@ -39,13 +39,13 @@ class Command(BaseCommand):
                     logger.error(f"Kafka error: {msg.error()}")
                 continue
 
-            logger.info(f"Consumer polling message: {msg}")
+            logger.info(f"Consumer Polling Message: {msg}")
             topic = msg.topic()
             raw_value = msg.value().decode('utf-8')
 
             try:
                 data = json.loads(raw_value)
-                logger.info(f"Consuming data from producer: {data}")
+                logger.info(f"Consumed Data: {data}")
 
             except json.JSONDecodeError as e:
                 logger.error(f"Invalid JSON: {e}")
@@ -53,24 +53,38 @@ class Command(BaseCommand):
 
             try:
                 if topic == settings.KAFKA_TOPICS['daily']:
-                    
-                    logger.info(f"Consumer calling DailyDataProcessor")
-                    
+                                        
                     processed = DailyDataProcessor(data)
+                    
                     data_value = json.dumps(processed).encode('utf-8')
-                    logger.info(f"passing processed data to consumser: {data_value}")
 
-                    producer.produce(settings.KAFKA_TOPICS['processed-daily'], value=json.dumps(processed).encode('utf-8'))
+                    logger.info(f"Passing processed data to processed-daily Producer: {data_value}")
+
+                    producer.produce(settings.KAFKA_TOPICS['processed-daily'], value=data_value)
 
                 elif topic == settings.KAFKA_TOPICS['15min']:
+
                     processed = RealTimeDataProcessor(data)
-                    producer.produce(settings.KAFKA_TOPICS['processed-15min'], value=json.dumps(processed).encode('utf-8'))
+
+                    data_value = json.dumps(processed).encode('utf-8')
+
+                    logger.info(f"Passing processed data to processed-15min Producer: {data_value}")
+
+                    producer.produce(settings.KAFKA_TOPICS['processed-15min'], value=data_value)
 
                 elif topic == settings.KAFKA_TOPICS['options']:
+
                     for record in data:
+
                         processed = OptionDataProcessor(record)
-                        producer.produce(settings.KAFKA_TOPICS['processed-options'], value=json.dumps(processed).encode('utf-8'))
+
+                        data_value = json.dumps(processed).encode('utf-8')
+
+                        logger.info(f"Passing processed data to processed-options Producer: {data_value}")
+
+                        producer.produce(settings.KAFKA_TOPICS['processed-options'], value=data_value)
 
                 producer.flush()
+
             except Exception as e:
                 logger.error(f"Processing error: {e}")

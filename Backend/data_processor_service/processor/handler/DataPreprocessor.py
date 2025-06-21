@@ -26,7 +26,7 @@ class DataPreprocessor:
         self.duplicate_count = 0
         self.missing_handled_count = 0
         
-    def preprocess_stock_data(self, data):
+    def preprocess_stock_data(self, df):
         """
         Main preprocessing pipeline for stock data
         Args:
@@ -36,20 +36,10 @@ class DataPreprocessor:
         """
         logger.info(f"Inside preprocess stock data")
         try:
-            if not data or 'values' not in data:
-                logger.error("Invalid data structure: missing 'values' key")
-                return data
-            
-            if not data['values']:
-                logger.warning("Empty values array")
-                return data
-                
-            # Convert values to DataFrame for processing
-            df = pd.DataFrame(data['values'])
             
             # Step 1: Fix data types first
             df = self._fix_data_types(df)
-            
+
             # Step 2: Handle missing values
             df = self._handle_missing_values(df)
             
@@ -63,58 +53,22 @@ class DataPreprocessor:
             df = self._standardize_formatting(df)
             
             # Convert back to the original structure
-            processed_data = data.copy()
-            processed_data['values'] = df.to_dict(orient='records')
+            processed_data = df.copy()
+            processed_data = df.to_dict(orient='records')
             
-            # Add processing metadata
-            processed_data['preprocessing_stats'] = {
-                'total_processed': self.processed_count,
-                'invalid_rows_removed': self.invalid_count,
-                'duplicates_removed': self.duplicate_count,
-                'missing_values_handled': self.missing_handled_count,
-                'final_count': len(df)
-            }
-            
-            logger.info(f"Preprocessing completed for {data.get('symbol', 'unknown')}: "
-                       f"{len(df)} records processed")
-            
+            logger.info(f"processed_data: {processed_data}")
+
             return processed_data
             
         except Exception as e:
             logger.error(f"Preprocessing error: {str(e)}")
-            return data
-    
-    def _fix_data_types(self, df):
-        """Step 4: Fix data types"""
-        try:
-            original_count = len(df)
-            
-            # Convert datetime
-            if 'datetime' in df.columns:
-                df['datetime'] = pd.to_datetime(df['datetime'], errors='coerce')
-                # Remove rows with invalid dates
-                df = df.dropna(subset=['datetime'])
-            
-            # Convert OHLCV to numeric
-            price_columns = ['open', 'high', 'low', 'close']
-            for col in price_columns:
-                if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors='coerce')
-            
-            # Convert volume to integer
-            if 'volume' in df.columns:
-                df['volume'] = pd.to_numeric(df['volume'], errors='coerce')
-                df['volume'] = df['volume'].fillna(0).astype('int64')
-            
-            logger.info(f"Data types fixed: {len(df)} valid records from {original_count}")
-            return df
-            
-        except Exception as e:
-            logger.error(f"Data type fixing error: {str(e)}")
             return df
     
     def _handle_missing_values(self, df):
         """Step 1: Handle missing values"""
+
+        logger.info(f"Handeling Missing Value")
+
         try:
             original_missing = df.isnull().sum().sum()
             
@@ -150,6 +104,9 @@ class DataPreprocessor:
     
     def _remove_duplicates(self, df):
         """Step 2: Remove duplicates"""
+
+        logger.info(f"Removing Duplicate")
+
         try:
             original_count = len(df)
             
@@ -173,6 +130,9 @@ class DataPreprocessor:
     
     def _validate_and_clean_rows(self, df):
         """Step 3: Check invalid rows and remove them"""
+
+        logger.info(f"Data validation and cleaning")
+
         try:
             original_count = len(df)
             invalid_rows = []
@@ -220,8 +180,42 @@ class DataPreprocessor:
             logger.error(f"Row validation error: {str(e)}")
             return df
     
+    def _fix_data_types(self, df):
+        """Step 4: Fix data types"""
+        logger.info(f"Fixing Data Type")
+
+        try:
+            original_count = len(df)
+            
+            # Convert datetime
+            if 'datetime' in df.columns:
+                df['datetime'] = pd.to_datetime(df['datetime'], errors='coerce')
+                # Remove rows with invalid dates
+                df = df.dropna(subset=['datetime'])
+            
+            # Convert OHLCV to numeric
+            price_columns = ['open', 'high', 'low', 'close']
+            for col in price_columns:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+            
+            # Convert volume to integer
+            if 'volume' in df.columns:
+                df['volume'] = pd.to_numeric(df['volume'], errors='coerce')
+                df['volume'] = df['volume'].fillna(0).astype('int64')
+            
+            logger.info(f"Data types fixed: {len(df)} valid records from {original_count}")
+            return df
+            
+        except Exception as e:
+            logger.error(f"Data type fixing error: {str(e)}")
+            return df
+        
     def _standardize_formatting(self, df):
         """Step 5: Correct inconsistent formatting"""
+
+        logger.info(f"Data Formatting and standardizing")
+
         try:
             # Standardize datetime format
             if 'datetime' in df.columns:

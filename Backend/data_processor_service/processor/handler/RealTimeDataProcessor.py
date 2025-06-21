@@ -5,45 +5,45 @@ from .DataPreprocessor import DataPreprocessor
 logger = logging.getLogger(__name__)
 
 def RealTimeDataProcessor(data):
-    """
-    Processes real-time (15-minute) stock data with comprehensive preprocessing
-    Applies all 5 preprocessing steps:
-    1. Handling missing values
-    2. Removing duplicates  
-    3. Check invalid rows
-    4. Fixing data types
-    5. Correcting inconsistent formatting
     
-    Args:
-        data: Dictionary containing real-time stock data
-    Returns:
-        Processed data dictionary
-    """
+    logger.info(f"PROCESSOR CALLED REALTIMEDATAPROCESSOR")
+
     try:
-        logger.info(f"Processing real-time data for symbol: {data.get('symbol', 'unknown')}")
+
+        symbol = data['meta']['symbol']
+        data_value = data['values']
+    
+        for value in data_value:
+            value['symbol'] = symbol
+
+         # Convert values to DataFrame for processing
+        data_df = pd.DataFrame(data_value)
+
+        df = data_df[['datetime','symbol', 'open', 'high', 'low', 'close', 'volume']]
+
+        logger.info(f"Processing real-time data for symbol: {symbol}")
         
-        # Initialize preprocessor for real-time stock data
+        # Initializing preprocessor for real-time stock data
         preprocessor = DataPreprocessor(data_type='realtime_stock')
         
-        # Apply comprehensive preprocessing
-        processed_data = preprocessor.preprocess_stock_data(data)
+        # Applying comprehensive preprocessing
+        processed_data = preprocessor.preprocess_stock_data(df)
         
-        # Add processing timestamp and data type
-        processed_data['processing_timestamp'] = pd.Timestamp.now().isoformat()
-        processed_data['data_type'] = 'realtime'
-        processed_data['processor_version'] = '1.0'
+       
+        # Sort by datetime for real-time data (important for time series)
+        df = pd.DataFrame(processed_data)
+        if 'datetime' in df.columns:
+            df['datetime'] = pd.to_datetime(df['datetime'], utc=True)  
+            df = df.sort_values('datetime').reset_index(drop=True)
+
+            # converting into Influx-friendly timestamp ISO 8601 UTC
+            df['datetime'] = df['datetime'].dt.strftime('%Y-%m-%dT%H:%M:%SZ')  
+            processed_data = df.to_dict(orient='records')
         
-        # Additional real-time specific processing
-        if 'values' in processed_data and processed_data['values']:
-            # Sort by datetime for real-time data (important for time series)
-            df = pd.DataFrame(processed_data['values'])
-            if 'datetime' in df.columns:
-                df['datetime'] = pd.to_datetime(df['datetime'])
-                df = df.sort_values('datetime').reset_index(drop=True)
-                df['datetime'] = df['datetime'].dt.strftime('%Y-%m-%d %H:%M:%S')
-                processed_data['values'] = df.to_dict(orient='records')
-        
-        logger.info(f"Real-time data processing completed for {data.get('symbol', 'unknown')}")
+        logger.info(f"Real-time data processing completed for {symbol}")
+
+        logger.info(f"Processed data sending back to Processor: {processed_data}")
+
         return processed_data
         
     except Exception as e:

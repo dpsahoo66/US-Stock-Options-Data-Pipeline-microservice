@@ -8,6 +8,8 @@ from django.conf import settings
 from processor.handler.DailyDataProcessor import DailyDataProcessor
 from processor.handler.RealTimeDataProcessor import RealTimeDataProcessor
 from processor.handler.OptionDataProcessor import OptionDataProcessor
+from processor.handler.HistoricalDataProcessor import HistoricalDataProcessor
+
 import logging
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +25,8 @@ class Command(BaseCommand):
         consumer.subscribe([
             settings.KAFKA_TOPICS['daily'],
             settings.KAFKA_TOPICS['15min'],
-            settings.KAFKA_TOPICS['options']
+            settings.KAFKA_TOPICS['options'],
+            settings.KAFKA_TOPICS['historical']
         ])
 
         logger.info("Kafka processor started. Listening for messages...")
@@ -62,6 +65,11 @@ class Command(BaseCommand):
 
                     producer.produce(settings.KAFKA_TOPICS['processed-daily'], value=data_value)
 
+                    logger.info(f"Passing processed data to processed-file-daily Producer: {data_value}")
+
+                    producer.produce(settings.KAFKA_TOPICS['processed-file-daily'], value=data_value)
+
+
                 elif topic == settings.KAFKA_TOPICS['15min']:
 
                     processed = RealTimeDataProcessor(data)
@@ -72,6 +80,11 @@ class Command(BaseCommand):
 
                     producer.produce(settings.KAFKA_TOPICS['processed-15min'], value=data_value)
 
+                    logger.info(f"Passing processed data to processed-file-15min Producer: {data_value}")
+
+                    producer.produce(settings.KAFKA_TOPICS['processed-file-15min'], value=data_value)
+
+
                 elif topic == settings.KAFKA_TOPICS['options']:
 
                     processed = OptionDataProcessor(data)
@@ -81,6 +94,26 @@ class Command(BaseCommand):
                     logger.info(f"Passing processed data to processed-options Producer: {data_value}")
 
                     producer.produce(settings.KAFKA_TOPICS['processed-options'], value=data_value)
+
+                    logger.info(f"Passing processed data to processed-file-options Producer: {data_value}")
+
+                    producer.produce(settings.KAFKA_TOPICS['processed-file-options'], value=data_value)
+
+                
+                elif topic == settings.KAFKA_TOPICS['historical']:
+
+                    processed = HistoricalDataProcessor(data)
+
+                    data_value = json.dumps(processed).encode('utf-8')
+
+                    logger.info(f"Passing processed data to processed-historical Producer: {data_value}")
+
+                    producer.produce(settings.KAFKA_TOPICS['processed-historical'], value=data_value)
+
+                    logger.info(f"Passing processed data to processed-file-historical Producer: {data_value}")
+
+                    producer.produce(settings.KAFKA_TOPICS['processed-file-historical'], value=data_value)
+
 
                 producer.flush()
 

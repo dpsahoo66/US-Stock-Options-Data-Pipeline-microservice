@@ -37,6 +37,9 @@ def fetch_each_day_data(request):
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     tomorrow = (datetime.now(timezone.utc) + timedelta(days=1)).strftime('%Y-%m-%d')
     
+    tod = "2025-06-02"    
+    tomms = "2025-06-03"
+
     logger.info(f"today: {today}")
     logger.info(f"tomorrow: {tomorrow}")
 
@@ -49,8 +52,8 @@ def fetch_each_day_data(request):
             params = {
                 "symbol": symbol,
                 "interval": "1day",
-                "start_date": today,
-                "end_date": tomorrow,
+                "start_date": tod,
+                "end_date": tomms,
                 "apikey": api_key,
                 "outputsize": 1
             }
@@ -110,14 +113,17 @@ def fetch_last_15min_data(request):
 
     all_data = []
 
+    tod = "2025-06-02"    
+    tomms = "2025-06-03"
+
     for batch in create_batches(symbols, batch_size=8):
         batch_data = {}
         for symbol in batch:
             params = {
                 "symbol": symbol,
                 "interval": "1min",
-                "start_date": today,
-                "end_date": tomorrow,
+                "start_date": tod,
+                "end_date": tomms,
                 "apikey": api_key,
                 "outputsize": 15
             }
@@ -314,7 +320,7 @@ def fetch_historical_data(request):
                             batch_data[symbol] = data
                             for record in data["values"]:
                                 record["symbol"] = symbol
-                                producer.produce(settings.KAFKA_TOPICS["daily"], value=json.dumps(record).encode("utf-8"))
+                                producer.produce(settings.KAFKA_TOPICS["historical"], value=json.dumps(record).encode("utf-8"))
                                 producer.flush()
                                 symbol_data.append(record)
                     else:
@@ -340,21 +346,3 @@ def fetch_historical_data(request):
         "message": "Fetched 10 years of daily historical data for all symbols in batches",
         "data": all_data
     }, status=200)
-
-def serialize_safely(data):
-    def clean_value(val):
-        if isinstance(val, (pd.Timestamp, np.datetime64)):
-            return str(val)
-        elif isinstance(val, (np.int64, np.float64)):
-            return val.item()
-        return val
-
-    if isinstance(data, pd.DataFrame):
-        data = data.to_dict(orient='records')
-
-    for record in data:
-        for k, v in record.items():
-            record[k] = clean_value(v)
-
-    return json.dumps(data)
-

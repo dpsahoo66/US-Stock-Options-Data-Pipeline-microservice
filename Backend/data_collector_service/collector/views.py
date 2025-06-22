@@ -163,6 +163,8 @@ def fetch_option_data(request):
     Fetches options data for multiple symbols (in batches of 8) from Yahoo Finance.
     """
     today = datetime.now().date()
+    # today = datetime.strptime("2025-06-16", "%Y-%m-%d").date()
+    # cutoff = datetime.strptime("2025-08-16", "%Y-%m-%d").date()
     cutoff = today + timedelta(days=65)
     full_result = []
 
@@ -172,18 +174,18 @@ def fetch_option_data(request):
     for batch in create_batches(symbols, batch_size=8):
         batch_result = {}
         for symbol in batch:
-            # try:
-                logger.info(f"before ticker")
+            try:
 
                 ticker = yf.Ticker(symbol)
-
-                logger.info(f"after ticker")
-                logger.info(f"ticker.options: {ticker.options}")
-
-                expirations = ticker.options
-
-                logger.info(f"after expirations")
-
+                logger.info(f"[{symbol}] - Ticker object created.")
+                
+                try:
+                    expirations = ticker.options
+                    logger.info(f"[{symbol}] - expiration date fetched")
+                except Exception as e:
+                    logger.error(f"[{symbol}] - Error creating expiration update to new yfinance version: {e}", exc_info=True)
+                    continue
+                
                 if not expirations:
                     batch_result[symbol] = {
                         "status": "error",
@@ -195,12 +197,12 @@ def fetch_option_data(request):
 
                 valid_expirations = []
                 for exp in expirations:
-                    # try:
+                    try:
                         exp_date = datetime.strptime(exp, "%Y-%m-%d").date()
                         if today <= exp_date <= cutoff:
                             valid_expirations.append(exp)
-                    # except Exception as e:
-                    #     print(f"Invalid expiration format for {symbol}: {exp} — {e}")
+                    except Exception as e:
+                        print(f"Invalid expiration format for {symbol}: {exp} — {e}")
 
                 if not valid_expirations:
                     batch_result[symbol] = {
@@ -213,23 +215,30 @@ def fetch_option_data(request):
 
                 all_calls = []
                 for expiry in valid_expirations:
-                    # try:
+                    try:
                         opt_chain = ticker.option_chain(expiry)
                         calls = opt_chain.calls.copy()
                         calls["expirationDate"] = expiry
                         all_calls.append(calls)
                         print(f"{symbol}: Fetched {len(calls)} calls for {expiry}")
-                    # except Exception as e:
-                    #     print(f"{symbol}: Error fetching data for {expiry}: {e}")
+                    except Exception as e:
+                        print(f"{symbol}: Error fetching data for {expiry}: {e}")
 
                 logger.info(f"all_calls: {all_calls}")
 
                 if all_calls:
                     calls_df = pd.concat(all_calls, ignore_index=True)
                     if not calls_df.empty:
+                        # Convert timestamp columns to string first
+                        for col in ['lastTradeDate', 'expirationDate']:
+                            if col in calls_df.columns:
+                                calls_df[col] = calls_df[col].astype(str)
+
+                        # Now convert DataFrame to list of dicts
                         data_batch = calls_df.to_dict(orient='records')
 
-                        data_value = serialize_safely(data_batch)
+                        # Serialize data_batch with json.dumps and encode to bytes for Kafka
+                        data_value = json.dumps(data_batch).encode('utf-8')
                         logger.info(f"Passing fetched data to option-data Producer: {data_value}")
                         producer.produce(settings.KAFKA_TOPICS['options'], value=data_value)
                         producer.flush()
@@ -250,12 +259,12 @@ def fetch_option_data(request):
                         "message": "No valid expirations with data"
                     }
 
-            # except Exception as e:
-            #     batch_result[symbol] = {
-            #         "status": "error",
-            #         "message": f"Unexpected error: {e}"
-            #     }
-
+            except Exception as e:
+                batch_result[symbol] = {
+                    "status": "error",
+                    "message": f"Unexpected error: {e}"
+                }
+            
         full_result.append(batch_result)
         time.sleep(5) 
         

@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "file_writer",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -121,3 +122,13 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+#  Kafka Topics
+KAFKA_TOPICS = {
+    'processed-file-daily': 'processed-file-daily-data',
+    'processed-file-15min': 'processed-file-15min-data',
+    'processed-file-options': 'processed-file-options-data',
+    'processed-file-historical': 'processed-file-historical-data'
+
+ }

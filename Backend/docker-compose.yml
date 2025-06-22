@@ -199,9 +199,17 @@ services:
       kafka-topics --create --topic daily-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
       kafka-topics --create --topic 15min-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
       kafka-topics --create --topic options-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
-      kafka-topics --create --topic processed-daily --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
-      kafka-topics --create --topic processed-15min --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
-      kafka-topics --create --topic processed-options --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic historical-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+
+      kafka-topics --create --topic processed-daily-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic processed-15min-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic processed-options-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic processed-historical-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+
+      kafka-topics --create --topic processed-file-daily-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic processed-file-15min-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic processed-file-options-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
+      kafka-topics --create --topic processed-file-historical-data --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 
       echo 'Kafka topics created!'
       "

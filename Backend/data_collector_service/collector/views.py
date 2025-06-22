@@ -220,12 +220,16 @@ def fetch_option_data(request):
                 logger.info(f"valid_expirations: {valid_expirations}")
 
                 all_calls = []
+                all_puts = []
                 for expiry in valid_expirations:
                     try:
                         opt_chain = ticker.option_chain(expiry)
                         calls = opt_chain.calls.copy()
                         calls["expirationDate"] = expiry
                         all_calls.append(calls)
+                        puts = opt_chain.puts.copy()
+                        puts["expirationDate"] = expiry
+                        all_puts.append(puts)
                         print(f"{symbol}: Fetched {len(calls)} calls for {expiry}")
                     except Exception as e:
                         print(f"{symbol}: Error fetching data for {expiry}: {e}")
@@ -234,6 +238,7 @@ def fetch_option_data(request):
 
                 if all_calls:
                     calls_df = pd.concat(all_calls, ignore_index=True)
+                    calls_df["type"] = "calls"
                     if not calls_df.empty:
                         # Convert timestamp columns to string first
                         for col in ['lastTradeDate', 'expirationDate']:
@@ -242,6 +247,40 @@ def fetch_option_data(request):
 
                         # Now convert DataFrame to list of dicts
                         data_batch = calls_df.to_dict(orient='records')
+
+                        # Serialize data_batch with json.dumps and encode to bytes for Kafka
+                        data_value = json.dumps(data_batch).encode('utf-8')
+                        logger.info(f"Passing fetched data to option-data Producer: {data_value}")
+                        producer.produce(settings.KAFKA_TOPICS['options'], value=data_value)
+                        producer.flush()
+                        
+                        batch_result[symbol] = {
+                            "status": "success",
+                            "message": f"{len(data_batch)} option records",
+                            "data": data_batch
+                        }
+                    else:
+                        batch_result[symbol] = {
+                            "status": "warning",
+                            "message": "No option data found"
+                        }
+                else:
+                    batch_result[symbol] = {
+                        "status": "warning",
+                        "message": "No valid expirations with data"
+                    }
+                
+                if all_puts:
+                    puts_df = pd.concat(all_puts, ignore_index=True)
+                    puts_df["type"] = "puts"
+                    if not puts_df.empty:
+                        # Convert timestamp columns to string first
+                        for col in ['lastTradeDate', 'expirationDate']:
+                            if col in puts_df.columns:
+                                puts_df[col] = puts_df[col].astype(str)
+
+                        # Now convert DataFrame to list of dicts
+                        data_batch = puts_df.to_dict(orient='records')
 
                         # Serialize data_batch with json.dumps and encode to bytes for Kafka
                         data_value = json.dumps(data_batch).encode('utf-8')

@@ -140,5 +140,6 @@ INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
 KAFKA_TOPICS = {
     'processed-daily': 'processed-daily-data',
     'processed-15min': 'processed-15min-data',
-    'processed-options': 'processed-options-data'
+    'processed-options': 'processed-options-data',
+    'processed-historical': 'processed-historical-data'
  }

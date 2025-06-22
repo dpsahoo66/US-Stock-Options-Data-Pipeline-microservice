@@ -128,7 +128,16 @@ KAFKA_TOPICS = {
     'daily': 'daily-data',
     '15min': '15min-data',
     'options': 'options-data',
+    'historical': 'historical-data',
+    
     'processed-daily': 'processed-daily-data',
     'processed-15min': 'processed-15min-data',
-    'processed-options': 'processed-options-data'
+    'processed-options': 'processed-options-data',
+    'processed-historical': 'processed-historical-data',
+
+    'processed-file-daily': 'processed-file-daily-data',
+    'processed-file-15min': 'processed-file-15min-data',
+    'processed-file-options': 'processed-file-options-data',
+    'processed-file-historical': 'processed-file-historical-data',
+
 }

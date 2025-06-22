@@ -128,7 +128,6 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Azure SQL Connection
-AZURE_SQL_CONN = os.getenv("AZURE_SQL_CONN")
 
 # InfluxDB Settings
 INFLUX_URL = os.getenv("INFLUX_URL")

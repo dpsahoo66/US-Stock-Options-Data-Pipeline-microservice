@@ -138,7 +138,7 @@ INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
 
 #  Kafka Topics
 KAFKA_TOPICS = {
-     'processed-15min': os.getenv("TOPIC_15MIN"),
-     'processed-daily': os.getenv("TOPIC_DAILY"),
-     'processed-options': os.getenv("TOPIC_OPTIONS"),
+    'processed-daily': 'processed-daily-data',
+    'processed-15min': 'processed-15min-data',
+    'processed-options': 'processed-options-data'
  }

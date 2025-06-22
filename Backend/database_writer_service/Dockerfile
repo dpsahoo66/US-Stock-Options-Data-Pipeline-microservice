@@ -11,7 +11,5 @@ RUN apt-get update \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-COPY wait_for_kafka.sh .
-RUN chmod +x wait_for_kafka.sh
 EXPOSE 8002
-CMD ["./wait_for_kafka.sh", "python", "manage.py", "run_kafka_writer"]
+CMD ["python", "manage.py", "run_kafka_writer"]

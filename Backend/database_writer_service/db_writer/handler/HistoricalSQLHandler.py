@@ -9,8 +9,8 @@ class HistoricalSQLHandler:
         self.conn = pyodbc.connect(conn_str)
         self.cursor = self.conn.cursor()
 
-    def write_data(self, batch):
-        for r in batch:
+    def write_data(self, data):
+        for r in data:
             try:
                 self.cursor.execute("""
                      INSERT INTO StockData (Date, StockName, [Open], High, Low, [Close], Volume)
@@ -19,7 +19,7 @@ class HistoricalSQLHandler:
             except Exception as e:
                 logger.error(f"HistoricalSQL insert error: {e}")
         self.conn.commit()
-        logger.info(f"SQL Historical write: {len(batch)} rows")
+        logger.info(f"SQL Historical write: {len(data)} rows")
 
     def __del__(self):
         self.cursor.close()

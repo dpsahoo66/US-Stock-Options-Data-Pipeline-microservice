@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from confluent_kafka import KafkaError
 import json, time, logging
 
-# from db_writer.handler.InfluxHandler import InfluxHandler
+from db_writer.handler.InfluxHandler import InfluxHandler
 # from db_writer.handler.DailySQLHandler import DailySQLHandler
 # from db_writer.handler.HistoricalSQLHandler import HistoricalSQLHandler
 from db_writer.handler.OptionsSQLHandler import OptionsSQLHandler
@@ -24,7 +24,7 @@ class Command(BaseCommand):
             settings.KAFKA_TOPICS['processed-options'],
             settings.KAFKA_TOPICS['processed-historical']
         ])
-        # influx = InfluxHandler()
+        influx = InfluxHandler()
         # daily = DailySQLHandler()
         # historical = HistoricalSQLHandler()
         options = OptionsSQLHandler()
@@ -57,11 +57,17 @@ class Command(BaseCommand):
                     options.write_data(data)
                     
                     logger.info(f"Option data inserted succesfully {data}")
+                
+                elif topic == settings.KAFKA_TOPICS['processed-15min']:
 
+                    influx.write_data(data)
+
+                    logger.info(f"15 min data inserted succesfully ")
             except Exception as e:
                 logger.error(f"Processing error: {e}")
 
             # try:
+
             #     if topic == settings.KAFKA_TOPICS['processed-daily']:
                                         
             #         daily.write_data(data)

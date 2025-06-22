@@ -74,15 +74,13 @@ class Command(BaseCommand):
 
                 elif topic == settings.KAFKA_TOPICS['options']:
 
-                    for record in data:
+                    processed = OptionDataProcessor(data)
 
-                        processed = OptionDataProcessor(record)
+                    data_value = json.dumps(processed).encode('utf-8')
 
-                        data_value = json.dumps(processed).encode('utf-8')
+                    logger.info(f"Passing processed data to processed-options Producer: {data_value}")
 
-                        logger.info(f"Passing processed data to processed-options Producer: {data_value}")
-
-                        producer.produce(settings.KAFKA_TOPICS['processed-options'], value=data_value)
+                    producer.produce(settings.KAFKA_TOPICS['processed-options'], value=data_value)
 
                 producer.flush()
 

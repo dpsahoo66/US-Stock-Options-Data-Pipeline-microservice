@@ -5,39 +5,34 @@ from .DataPreprocessor import DataPreprocessor
 logger = logging.getLogger(__name__)
 
 def OptionDataProcessor(data):
-    """
-    Processes options data with comprehensive preprocessing
-    Applies all 5 preprocessing steps:
-    1. Handling missing values
-    2. Removing duplicates  
-    3. Check invalid rows
-    4. Fixing data types
-    5. Correcting inconsistent formatting
     
-    Args:
-        data: Dictionary containing options data
-    Returns:
-        Processed data dictionary
-    """
+    logger.info(f"PROCESSOR CALLED OPTIONDATAPROCESSOR")
+
     try:
-        logger.info(f"Processing options data for symbol: {data.get('symbol', 'unknown')}")
+        sym = data[0]["contractSymbol"][:3]
+
+        for value in data:
+            value['symbol'] = value["contractSymbol"][:3]
+
+        # Convert values to DataFrame for processing
+        data_df = pd.DataFrame(data)
+        
+        df = data_df[["contractSymbol", "symbol", "lastTradeDate", "strike", "lastPrice", "bid", "ask", "change", "percentChange", "volume", "openInterest", "impliedVolatility", "inTheMoney", "contractSize", "currency", "expirationDate"]]
+        
+        logger.info(f"Processing options data for symbol: {sym}")
         
         # Initialize preprocessor for options data
         preprocessor = DataPreprocessor(data_type='options')
         
         # Apply comprehensive preprocessing
-        processed_data = preprocessor.preprocess_stock_data(data)
-        
-        # Add processing timestamp and data type
-        processed_data['processing_timestamp'] = pd.Timestamp.now().isoformat()
-        processed_data['data_type'] = 'options'
-        processed_data['processor_version'] = '1.0'
-        
+        processed_data = preprocessor.preprocess_stock_data(df)
+
         # Additional options-specific validation
-        if 'values' in processed_data and processed_data['values']:
-            processed_data = _validate_options_specific_data(processed_data)
+        processed_data = _validate_options_specific_data(processed_data)
         
-        logger.info(f"Options data processing completed for {data.get('symbol', 'unknown')}")
+        logger.info(f"Options data processing completed for {sym}")
+        logger.info(f"Processed data sending back to Processor: {processed_data}")
+
         return processed_data
         
     except Exception as e:

@@ -3,10 +3,10 @@ from django.core.management.base import BaseCommand
 from confluent_kafka import KafkaError
 import json, time, logging
 
-from handler.InfluxHandler import InfluxHandler
-from handler.DailySQLHandler import DailySQLHandler
-from handler.HistoricalSQLHandler import HistoricalSQLHandler
-from handler.OptionsSQLHandler import OptionsSQLHandler
+from db_writer.handler.InfluxHandler import InfluxHandler
+from db_writer.handler.DailySQLHandler import DailySQLHandler
+from db_writer.handler.HistoricalSQLHandler import HistoricalSQLHandler
+from db_writer.handler.OptionsSQLHandler import OptionsSQLHandler
 from db_writer.kafka import kafkaConfig
 from django.conf import settings
 

@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 class HistoricalSQLHandler:
     def __init__(self):
-        conn_str = os.getenv("AZURE_SQL_CONNECTION_STRING")
+        conn_str = os.getenv("AZURE_SQL_CONN")
         self.conn = pyodbc.connect(conn_str)
         self.cursor = self.conn.cursor()
 
@@ -13,9 +13,9 @@ class HistoricalSQLHandler:
         for r in batch:
             try:
                 self.cursor.execute("""
-                     INSERT INTO StockData (Date, StockName, [Open], High, Low, [Close], Volume)
+                     INSERT INTO StockData (StockName, Date, [Open], High, Low, [Close], Volume)
                      VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,  r["datetime"], r["symbol"], r["open"], r["high"], r["low"], r["close"], r["volume"])
+                """, r["StockName"], r["Date"], r["open"], r["high"], r["low"], r["close"], r["volume"])
             except Exception as e:
                 logger.error(f"HistoricalSQL insert error: {e}")
         self.conn.commit()

@@ -6,7 +6,7 @@ import json, time, logging
 # from db_writer.handler.InfluxHandler import InfluxHandler
 # from db_writer.handler.DailySQLHandler import DailySQLHandler
 # from db_writer.handler.HistoricalSQLHandler import HistoricalSQLHandler
-# from db_writer.handler.OptionsSQLHandler import OptionsSQLHandler
+from db_writer.handler.OptionsSQLHandler import OptionsSQLHandler
 from db_writer.kafka import kafkaConfig
 from django.conf import settings
 
@@ -24,11 +24,10 @@ class Command(BaseCommand):
             settings.KAFKA_TOPICS['processed-options'],
             settings.KAFKA_TOPICS['processed-historical']
         ])
-
         # influx = InfluxHandler()
         # daily = DailySQLHandler()
         # historical = HistoricalSQLHandler()
-        # options = OptionsSQLHandler()
+        options = OptionsSQLHandler()
 
         while True:
             msg = consumer.poll(1.0)
@@ -51,6 +50,16 @@ class Command(BaseCommand):
             except json.JSONDecodeError as e:
                 logger.error(f"Invalid JSON: {e}")
                 continue
+
+            try:
+                if topic == settings.KAFKA_TOPICS['processed-options']:
+                                        
+                    options.write_data(data)
+                    
+                    logger.info(f"Option data inserted succesfully {data}")
+
+            except Exception as e:
+                logger.error(f"Processing error: {e}")
 
             # try:
             #     if topic == settings.KAFKA_TOPICS['processed-daily']:

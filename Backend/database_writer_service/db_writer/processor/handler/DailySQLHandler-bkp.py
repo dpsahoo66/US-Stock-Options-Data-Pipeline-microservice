@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class DailySQLHandler:
     def __init__(self):
-        conn_str = settings.AZURE_SQL_CONNECTION_STRING
+        conn_str = settings.AZURE_SQL_CONN
         self.conn = pyodbc.connect(conn_str)
         self.cursor = self.conn.cursor()
 
@@ -16,9 +16,9 @@ class DailySQLHandler:
         for r in batch:
             try:
                 self.cursor.execute("""
-                    INSERT INTO StockData (Date, StockName, [Open], High, Low, [Close], Volume)
+                    INSERT INTO StockData (StockName, Date, [Open], High, Low, [Close], Volume)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, r["datetime"], r["symbol"], r["open"], r["high"], r["low"], r["close"], r["volume"])
+                """, r["StockName"], r["Date"], r["open"], r["high"], r["low"], r["close"], r["volume"])
             except Exception as e:
                 logger.error(f"DailySQL insert error: {e}")
         self.conn.commit()

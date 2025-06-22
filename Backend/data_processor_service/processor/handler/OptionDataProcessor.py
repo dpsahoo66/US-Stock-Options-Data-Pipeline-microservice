@@ -17,7 +17,7 @@ def OptionDataProcessor(data):
         # Convert values to DataFrame for processing
         data_df = pd.DataFrame(data)
         
-        df = data_df[["contractSymbol", "symbol", "lastTradeDate", "strike", "lastPrice", "bid", "ask", "change", "percentChange", "volume", "openInterest", "impliedVolatility", "inTheMoney", "contractSize", "currency", "expirationDate"]]
+        df = data_df[["contractSymbol", "symbol", "lastTradeDate", "strike", "lastPrice", "bid", "ask", "change", "percentChange", "volume", "openInterest", "impliedVolatility", "inTheMoney", "contractSize", "currency", "expirationDate", "type"]]
         
         logger.info(f"Processing options data for symbol: {sym}")
         

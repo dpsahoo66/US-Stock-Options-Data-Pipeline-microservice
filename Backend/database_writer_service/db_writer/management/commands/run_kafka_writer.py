@@ -21,7 +21,8 @@ class Command(BaseCommand):
         consumer.subscribe([
             settings.KAFKA_TOPICS['processed-daily'],
             settings.KAFKA_TOPICS['processed-15min'],
-            settings.KAFKA_TOPICS['processed-options']
+            settings.KAFKA_TOPICS['processed-options'],
+            settings.KAFKA_TOPICS['processed-historical']
         ])
 
         # influx = InfluxHandler()
@@ -64,11 +65,17 @@ class Command(BaseCommand):
 
             #         logger.info(f"15 min data inserted succesfully ")
 
-            #     elif topic == settings.KAFKA_TOPICS['processed-options']:
+                # elif topic == settings.KAFKA_TOPICS['processed-options']:
 
-            #         options.write_data(data)
+                #     options.write_data(data)
 
-            #         logger.info(f"Option data inserted succesfully ")
+                #     logger.info(f"Option data inserted succesfully ")
+                
+                # elif topic == settings.KAFKA_TOPICS['processed-historical']:
+
+                #     historical.write_data(data)
+
+                #     logger.info(f"Option data inserted succesfully ")
 
 
             # except Exception as e:

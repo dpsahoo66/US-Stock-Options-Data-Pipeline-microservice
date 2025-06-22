@@ -3,10 +3,10 @@ from django.core.management.base import BaseCommand
 from confluent_kafka import KafkaError
 import json, time, logging
 
-from db_writer.handler.InfluxHandler import InfluxHandler
-from db_writer.handler.DailySQLHandler import DailySQLHandler
-from db_writer.handler.HistoricalSQLHandler import HistoricalSQLHandler
-from db_writer.handler.OptionsSQLHandler import OptionsSQLHandler
+# from db_writer.handler.InfluxHandler import InfluxHandler
+# from db_writer.handler.DailySQLHandler import DailySQLHandler
+# from db_writer.handler.HistoricalSQLHandler import HistoricalSQLHandler
+# from db_writer.handler.OptionsSQLHandler import OptionsSQLHandler
 from db_writer.kafka import kafkaConfig
 from django.conf import settings
 
@@ -18,34 +18,58 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         consumer = kafkaConfig.create_consumer()
-        consumer.subscribe(list(settings.KAFKA_TOPICS.values()))
+        consumer.subscribe([
+            settings.KAFKA_TOPICS['processed-daily'],
+            settings.KAFKA_TOPICS['processed-15min'],
+            settings.KAFKA_TOPICS['processed-options']
+        ])
 
-        influx = InfluxHandler()
-        daily = DailySQLHandler()
-        historical = HistoricalSQLHandler()
-        options = OptionsSQLHandler()
-
-        buffers = {t: [] for t in settings.KAFKA_TOPICS.values()}
-        BATCH=8; FLUSH_SEC=10; last_flush=time.time()
+        # influx = InfluxHandler()
+        # daily = DailySQLHandler()
+        # historical = HistoricalSQLHandler()
+        # options = OptionsSQLHandler()
 
         while True:
-            msg = consumer.poll(1)
-            now=time.time()
-            if msg is None: pass
-            elif msg.error(): logger.error(msg.error())
-            else:
-                t=msg.topic(); d=json.loads(msg.value().decode())
-                buffers[t].append(d)
+            msg = consumer.poll(1.0)
 
-            for t, buf in buffers.items():
-                if buf and (len(buf)>=BATCH or now-last_flush>FLUSH_SEC):
-                    logger.info(f"FLUSH {t}, {len(buf)} items")
-                    if t == settings.KAFKA_TOPICS['processed-15min']:
-                        influx.write_data(buf)
-                    elif t == settings.KAFKA_TOPICS['processed-daily']:
-                        daily.write_data(buf)
-                        historical.write_data(buf)
-                    elif t == settings.KAFKA_TOPICS['processed-options']:
-                        options.write_data(buf)
-                    buffers[t] = []
-            last_flush = now
+            if msg is None:
+                continue
+            if msg.error():
+                if msg.error().code() != KafkaError._PARTITION_EOF:
+                    logger.error(f"Kafka error: {msg.error()}")
+                continue
+
+            logger.info(f"Consumer Polling Message: {msg}")
+            topic = msg.topic()
+            raw_value = msg.value().decode('utf-8')
+
+            try:
+                data = json.loads(raw_value)
+                logger.info(f"Consumed Data: {data}")
+
+            except json.JSONDecodeError as e:
+                logger.error(f"Invalid JSON: {e}")
+                continue
+
+            # try:
+            #     if topic == settings.KAFKA_TOPICS['processed-daily']:
+                                        
+            #         daily.write_data(data)
+                    
+            #         logger.info(f"Daily data inserted succesfully ")
+
+            #     elif topic == settings.KAFKA_TOPICS['processed-15min']:
+
+            #         influx.write_data(data)
+
+            #         logger.info(f"15 min data inserted succesfully ")
+
+            #     elif topic == settings.KAFKA_TOPICS['processed-options']:
+
+            #         options.write_data(data)
+
+            #         logger.info(f"Option data inserted succesfully ")
+
+
+            # except Exception as e:
+            #     logger.error(f"Processing error: {e}")

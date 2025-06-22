@@ -56,8 +56,6 @@ class DataPreprocessor:
             processed_data = df.copy()
             processed_data = df.to_dict(orient='records')
             
-            logger.info(f"processed_data: {processed_data}")
-
             return processed_data
             
         except Exception as e:

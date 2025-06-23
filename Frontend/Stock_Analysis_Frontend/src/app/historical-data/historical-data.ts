@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { StockDataService, StockDataPoint, StockListResponse } from '../services/stock-data.service';
 import * as Highcharts from 'highcharts';
+import HighchartsStock from 'highcharts/modules/stock';
+
+// Initialize the stock module
+HighchartsStock(Highcharts);
 
 @Component({
   selector: 'app-historical-data',

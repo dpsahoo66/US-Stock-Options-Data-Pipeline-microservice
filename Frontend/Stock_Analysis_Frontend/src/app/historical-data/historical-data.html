@@ -1,1 +1,87 @@
-<p>historical-data works!</p>
+<div class="historical-data-container">
+  <mat-card class="controls-card">
+    <mat-card-header>
+      <mat-card-title>Historical Stock Data Dashboard</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="controls">
+        <mat-form-field appearance="outline">
+          <mat-label>Select Stock</mat-label>
+          <mat-select [(value)]="selectedStock" (selectionChange)="onStockChange()">
+            <mat-option *ngFor="let stock of availableStocks" [value]="stock">
+              {{ stock }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <button mat-raised-button color="primary" (click)="loadStockData()" [disabled]="loading">
+          <mat-icon *ngIf="loading">refresh</mat-icon>
+          <span *ngIf="!loading">Refresh Data</span>
+          <span *ngIf="loading">Loading...</span>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div *ngIf="error" class="error-message">
+    <mat-card color="warn">
+      <mat-card-content>
+        <mat-icon>error</mat-icon>
+        {{ error }}
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <mat-card class="chart-card" *ngIf="!loading && stockData.length > 0">
+    <mat-card-header>
+      <mat-card-title>{{ selectedStock }} Price Chart</mat-card-title>
+      <mat-card-subtitle>Last {{ stockData.length }} trading days</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="chart-container">
+        <highcharts-chart 
+          [Highcharts]="Highcharts"
+          [options]="chartOptions"
+          style="width: 100%; height: 500px; display: block;">
+        </highcharts-chart>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="data-summary" *ngIf="!loading && stockData.length > 0">
+    <mat-card-header>
+      <mat-card-title>Data Summary</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <strong>Total Records:</strong> {{ stockData.length }}
+        </div>
+        <div class="summary-item">
+          <strong>Latest Price:</strong> ${{ stockData[stockData.length - 1]?.close.toFixed(2) }}
+        </div>
+        <div class="summary-item">
+          <strong>Date Range:</strong> 
+          {{ stockData[0]?.date }} to {{ stockData[stockData.length - 1]?.date }}
+        </div>
+        <div class="summary-item">
+          <strong>Highest Price:</strong> 
+          ${{ (Math.max(...stockData.map(d => d.high))).toFixed(2) }}
+        </div>
+        <div class="summary-item">
+          <strong>Lowest Price:</strong> 
+          ${{ (Math.min(...stockData.map(d => d.low))).toFixed(2) }}
+        </div>
+        <div class="summary-item">
+          <strong>Avg Volume:</strong> 
+          {{ (stockData.reduce((sum, d) => sum + d.volume, 0) / stockData.length).toLocaleString() }}
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div *ngIf="loading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Loading stock data...</p>
+  </div>
+</div>

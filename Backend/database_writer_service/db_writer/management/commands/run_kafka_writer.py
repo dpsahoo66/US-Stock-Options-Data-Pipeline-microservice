@@ -4,7 +4,7 @@ from confluent_kafka import KafkaError
 import json, time, logging
 
 from db_writer.handler.InfluxHandler import InfluxHandler
-# from db_writer.handler.DailySQLHandler import DailySQLHandler
+from db_writer.handler.DailySQLHandler import DailySQLHandler
 from db_writer.handler.HistoricalSQLHandler import HistoricalSQLHandler
 from db_writer.handler.OptionsSQLHandler import OptionsSQLHandler
 from db_writer.kafka import kafkaConfig
@@ -25,7 +25,7 @@ class Command(BaseCommand):
             settings.KAFKA_TOPICS['processed-historical']
         ])
         influx = InfluxHandler()
-        # daily = DailySQLHandler()
+        daily = DailySQLHandler()
         historical = HistoricalSQLHandler()
         options = OptionsSQLHandler()
 
@@ -68,6 +68,11 @@ class Command(BaseCommand):
                     historical.write_data(data)
 
                     logger.info(f"Historical data inserted succesfully ")
+                elif topic == settings.KAFKA_TOPICS['processed-daily']:
+                                        
+                    daily.write_data(data)
+                    
+                    logger.info(f"Daily data inserted succesfully ")
             except Exception as e:
                 logger.error(f"Processing error: {e}")
 

@@ -58,23 +58,19 @@
           <strong>Total Records:</strong> {{ stockData.length }}
         </div>
         <div class="summary-item">
-          <strong>Latest Price:</strong> ${{ stockData[stockData.length - 1]?.close.toFixed(2) }}
+          <strong>Latest Price:</strong> ${{ getLatestPrice() }}
         </div>
         <div class="summary-item">
-          <strong>Date Range:</strong> 
-          {{ stockData[0]?.date }} to {{ stockData[stockData.length - 1]?.date }}
+          <strong>Date Range:</strong> {{ getDateRange() }}
         </div>
         <div class="summary-item">
-          <strong>Highest Price:</strong> 
-          ${{ (Math.max(...stockData.map(d => d.high))).toFixed(2) }}
+          <strong>Highest Price:</strong> ${{ getHighestPrice() }}
         </div>
         <div class="summary-item">
-          <strong>Lowest Price:</strong> 
-          ${{ (Math.min(...stockData.map(d => d.low))).toFixed(2) }}
+          <strong>Lowest Price:</strong> ${{ getLowestPrice() }}
         </div>
         <div class="summary-item">
-          <strong>Avg Volume:</strong> 
-          {{ (stockData.reduce((sum, d) => sum + d.volume, 0) / stockData.length).toLocaleString() }}
+          <strong>Avg Volume:</strong> {{ getAverageVolume() }}
         </div>
       </div>
     </mat-card-content>

@@ -260,14 +260,25 @@ async def get_historical_data(
         # Format data for response
         data_points = []
         for row in results:
-            data_points.append(StockDataPoint(
-                date=row[1].strftime('%Y-%m-%d') if row[1] else '',
-                open=float(row[2]) if row[2] else 0.0,
-                high=float(row[3]) if row[3] else 0.0,
-                low=float(row[4]) if row[4] else 0.0,
-                close=float(row[5]) if row[5] else 0.0,
-                volume=int(row[6]) if row[6] else 0
-            ))
+            # Handle different data formats (mock vs real database)
+            if len(row) >= 7:  # Full database result
+                data_points.append(StockDataPoint(
+                    date=row[1].strftime('%Y-%m-%d') if hasattr(row[1], 'strftime') else str(row[1]),
+                    open=float(row[2]) if row[2] else 0.0,
+                    high=float(row[3]) if row[3] else 0.0,
+                    low=float(row[4]) if row[4] else 0.0,
+                    close=float(row[5]) if row[5] else 0.0,
+                    volume=int(row[6]) if row[6] else 0
+                ))
+            else:  # Mock data format
+                data_points.append(StockDataPoint(
+                    date=str(row[1]),
+                    open=float(row[2]) if row[2] else 0.0,
+                    high=float(row[3]) if row[3] else 0.0,
+                    low=float(row[4]) if row[4] else 0.0,
+                    close=float(row[5]) if row[5] else 0.0,
+                    volume=int(row[6]) if row[6] else 0
+                ))
         
         # Reverse to get chronological order
         data_points.reverse()

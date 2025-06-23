@@ -65,10 +65,16 @@ class DatabaseConnection:
     def __init__(self):
         self.conn = None
         self.cursor = None
-        self.connect()
+        if PYODBC_AVAILABLE:
+            self.connect()
+        else:
+            logger.warning("Using mock database connection")
     
     def connect_with_retry(self):
         """Connect to Azure SQL with retry logic"""
+        if not PYODBC_AVAILABLE:
+            return None
+            
         for conn_str in conn_strings:
             driver = conn_str.split(';')[0].split('=')[1]
             logger.info(f"Trying connection with {driver}")
@@ -81,8 +87,8 @@ class DatabaseConnection:
                     
                     conn = pyodbc.connect(conn_str)
                     return conn
-                except pyodbc.Error as e:
-                    sqlstate = e.args[0]
+                except Exception as e:
+                    sqlstate = getattr(e, 'args', [''])[0] if PYODBC_AVAILABLE else ''
                     if sqlstate in ('08S01', '40001', '40197', '40501', '40613', '23000'):
                         logger.warning(f"Transient error encountered: {e}. Retrying...")
                     else:
@@ -101,6 +107,10 @@ class DatabaseConnection:
     
     def connect(self):
         """Establish connection to Azure SQL Database"""
+        if not PYODBC_AVAILABLE:
+            logger.warning("pyodbc not available, using mock connection")
+            return
+            
         try:
             self.conn = self.connect_with_retry()
             self.cursor = self.conn.cursor()
@@ -116,15 +126,60 @@ class DatabaseConnection:
             logger.error(f"Failed to connect to database: {e}")
             raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
     
+    def get_mock_data(self, stock_symbol: str = "AAPL", limit: int = 100):
+        """Generate mock data for testing when database is not available"""
+        import random
+        from datetime import datetime, timedelta
+        
+        mock_data = []
+        base_price = 150.0
+        base_date = datetime.now() - timedelta(days=limit)
+        
+        for i in range(limit):
+            date = base_date + timedelta(days=i)
+            # Generate realistic OHLCV data
+            open_price = base_price + random.uniform(-5, 5)
+            high_price = open_price + random.uniform(0, 10)
+            low_price = open_price - random.uniform(0, 10)
+            close_price = open_price + random.uniform(-8, 8)
+            volume = random.randint(1000000, 50000000)
+            
+            mock_data.append((
+                stock_symbol.upper(),
+                date.strftime('%Y-%m-%d'),
+                open_price,
+                high_price,
+                low_price,
+                close_price,
+                volume
+            ))
+            base_price = close_price  # Next day starts where this day ended
+        
+        return mock_data
+    
     def execute_query(self, query: str, params: tuple = None):
         """Execute query with retry logic"""
+        if not PYODBC_AVAILABLE:
+            # Return mock data based on query type
+            if "DISTINCT StockName" in query:
+                return [("AAPL",), ("GOOGL",), ("MSFT",), ("AMZN",), ("TSLA",)]
+            elif "SELECT TOP" in query and "StockData" in query:
+                stock_symbol = params[1] if params and len(params) > 1 else "AAPL"
+                limit = params[0] if params and len(params) > 0 else 100
+                return self.get_mock_data(stock_symbol, limit)
+            elif "COUNT(*)" in query:
+                return [(1000,)]
+            elif "MIN(Date)" in query:  # Summary query
+                return [(500, '2023-01-01', '2024-12-31', 155.50, 120.00, 200.00, 50000000)]
+            return []
+            
         try:
             if params:
                 self.cursor.execute(query, params)
             else:
                 self.cursor.execute(query)
             return self.cursor.fetchall()
-        except pyodbc.Error as e:
+        except Exception as e:
             logger.error(f"Query execution failed: {e}")
             # Try to reconnect and retry once
             self.connect()

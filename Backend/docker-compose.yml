@@ -53,7 +53,7 @@ services:
       context: ./data_collector_service
       dockerfile: Dockerfile
     environment:
-      - TWELVE_DATA_API_KEY=4954a2a422a84f228c11681b41980848
+      - TWELVE_DATA_API_KEY=200f5a7b095d40ab84753210bc4a95fa
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - KAFKA_TOPICS_DAILY=daily
       - KAFKA_TOPICS_15MIN=15min

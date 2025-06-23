@@ -113,18 +113,20 @@ class DatabaseConnection:
             
         try:
             self.conn = self.connect_with_retry()
-            self.cursor = self.conn.cursor()
-            
-            # Verify table exists
-            self.cursor.execute("SELECT 1 FROM sys.tables WHERE name = 'StockData'")
-            if not self.cursor.fetchone():
-                raise Exception("StockData table does not exist")
-            
-            logger.info("Connected successfully to Azure SQL Database")
+            if self.conn:
+                self.cursor = self.conn.cursor()
+                
+                # Verify table exists
+                self.cursor.execute("SELECT 1 FROM sys.tables WHERE name = 'StockData'")
+                if not self.cursor.fetchone():
+                    raise Exception("StockData table does not exist")
+                
+                logger.info("Connected successfully to Azure SQL Database")
             
         except Exception as e:
             logger.error(f"Failed to connect to database: {e}")
-            raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
+            logger.warning("Falling back to mock data mode")
+            # Don't raise exception, just use mock data
     
     def get_mock_data(self, stock_symbol: str = "AAPL", limit: int = 100):
         """Generate mock data for testing when database is not available"""

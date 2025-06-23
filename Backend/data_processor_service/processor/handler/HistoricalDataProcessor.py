@@ -5,6 +5,7 @@ from .DataPreprocessor import DataPreprocessor
 logger = logging.getLogger(__name__)
 
 def HistoricalDataProcessor(data):
+
     logger.info("PROCESSOR CALLED HISTORICALDATAPROCESSOR")
 
     try:
@@ -14,14 +15,13 @@ def HistoricalDataProcessor(data):
         for row in data_values:
             row['symbol'] = symbol
 
-        data_df = pd.DataFrame(data_values)   # now a multi-row frame
+        data_df = pd.DataFrame(data_values)
 
         df = data_df[['datetime', 'symbol', 'open', 'high', 'low', 'close', 'volume']]
 
         preprocessor = DataPreprocessor(data_type='historical_stock')
         processed = preprocessor.preprocess_stock_data(df)
 
-        # --- sort + ISO-8601 ---
         processed_df = pd.DataFrame(processed)
         processed_df['datetime'] = (
             pd.to_datetime(processed_df['datetime'], utc=True, errors='coerce')

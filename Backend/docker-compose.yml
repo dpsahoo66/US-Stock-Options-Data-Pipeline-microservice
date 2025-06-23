@@ -53,7 +53,7 @@ services:
       context: ./data_collector_service
       dockerfile: Dockerfile
     environment:
-      - TWELVE_DATA_API_KEY=4954a2a422a84f228c11681b41980848
+      - TWELVE_DATA_API_KEY=200f5a7b095d40ab84753210bc4a95fa
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - KAFKA_TOPICS_DAILY=daily
       - KAFKA_TOPICS_15MIN=15min
@@ -98,15 +98,14 @@ services:
       - KAFKA_TOPICS_PROCESSED_DAILY=processed-daily
       - KAFKA_TOPICS_PROCESSED_15MIN=processed-15min
       - KAFKA_TOPICS_PROCESSED_OPTIONS=processed-options
-      - INFLUXDB_URL=http://influxdb:8086
-      - INFLUXDB_TOKEN=adminpassword
-      - INFLUXDB_ORG=stock_pipeline
-      - INFLUXDB_BUCKET=stock_data
+      - INFLUXDB_URL=https://us-east-1-1.aws.cloud2.influxdata.com
+      - INFLUXDB_TOKEN=p4vPDiJyynco8tjaNhG2ch7A51SHtzN0ta3VsJ6Y1OqVyHtvuAL7K_gKOVmsYV47F_hqaNPlHKOdi6Y_C8Xjw==
+      - INFLUXDB_ORG=US_Stock_Data
+      - INFLUXDB_BUCKET=fifteenmin_stockdata
     ports:
       - "8002:8002"
     depends_on:
       - kafka
-      - influxdb
     networks:
       - stock_pipeline
 
@@ -145,21 +144,6 @@ services:
     depends_on:
       - prometheus
       - grafana
-    networks:
-      - stock_pipeline
-
-  influxdb:
-    image: influxdb:2.7
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword
-      - DOCKER_INFLUXDB_INIT_ORG=stock_pipeline
-      - DOCKER_INFLUXDB_INIT_BUCKET=stock_data
-    ports:
-      - "8086:8086"
-    volumes:
-      - influxdb_data:/var/lib/influxdb2
     networks:
       - stock_pipeline
 

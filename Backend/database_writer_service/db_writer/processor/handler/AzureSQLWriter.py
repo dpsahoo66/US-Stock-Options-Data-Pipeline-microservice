@@ -1,4 +1,3 @@
-# HistoricalSQLHandler.py
 import pyodbc
 import socket
 import time
@@ -7,7 +6,7 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-class HistoricalSQLHandler:
+class AzureSQLWriter:
     def __init__(self):
         self.conn_strings = [
             settings.AZURE_SQL_CONNECTION_STRING,
@@ -43,16 +42,10 @@ class HistoricalSQLHandler:
                 logger.info(f"Failed with {driver}, trying next driver if available")
         raise Exception("All connection attempts failed")
 
-    def write_data(self, data):
-        check_query = """
-            SELECT COUNT(*) 
-            FROM StockData 
-            WHERE StockName = ? AND Date = ?
-        """
-
-        insert_query = """
-            INSERT INTO StockData (StockName, Date, [Open], High, Low, [Close], Volume)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+    def write_stock_data(self, data):
+        query = """
+        INSERT INTO StockData (StockName, Date, [Open], High, Low, [Close], Volume)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """
         values = (
             data['symbol'],
@@ -63,53 +56,51 @@ class HistoricalSQLHandler:
             float(data['close']),
             int(data['volume'])
         )
-
         try:
-            self.cursor.execute(check_query, (data['symbol'], data['datetime'].split(' ')[0]))
-            exists = self.cursor.fetchone()[0]
-
-            if exists == 0:
-                self.cursor.execute(insert_query, values)
-                self.conn.commit()
-            else:
-                logger.info(f"Record for {data['symbol']} on {data['datetime'].split(' ')[0]} already exists, skipping insertion")
+            self.cursor.execute(query, values)
+            self.conn.commit()
         except pyodbc.Error as e:
-            logger.error(f"Failed to process stock data: {e}")
-            self.connect()
-            try:
-                self.cursor.execute(check_query, (data['symbol'], data['datetime'].split(' ')[0]))
-                exists = self.cursor.fetchone()[0]
-                if exists == 0:
-                    self.cursor.execute(insert_query, values)
-                    self.conn.commit()
-                else:
-                    logger.info(f"Record for {data['symbol']} on {data['datetime'].split(' ')[0]} already exists, skipping insertion")
-            except pyodbc.Error as e:
-                logger.error(f"Retry failed: {e}")
+            logger.error(f"Failed to write stock data: {e}")
+            self.connect()  # Reconnect on failure
+            self.cursor.execute(query, values)
+            self.conn.commit()
 
-
-
-        # query = """
-        # INSERT INTO StockData (StockName, Date, [Open], High, Low, [Close], Volume)
-        # VALUES (?, ?, ?, ?, ?, ?, ?)
-        # """
-        # values = (
-        #     data['symbol'],
-        #     data['datetime'].split(' ')[0],
-        #     float(data['open']),
-        #     float(data['high']),
-        #     float(data['low']),
-        #     float(data['close']),
-        #     int(data['volume'])
-        # )
-        # try:
-        #     self.cursor.execute(query, values)
-        #     self.conn.commit()
-        # except pyodbc.Error as e:
-        #     logger.error(f"Failed to write stock data: {e}")
-        #     self.connect()  # Reconnect on failure
-        #     self.cursor.execute(query, values)
-        #     self.conn.commit()
+    def write_option_data(self, data):
+        table = 'put_options' if data['type'].lower() == 'put' else 'call_options'
+        query = f"""
+        INSERT INTO {table} (
+            contractSymbol, lastTradeDate, expirationDate, strike, lastPrice, bid, ask,
+            change, percentChange, volume, openInterest, impliedVolatility, inTheMoney,
+            contractSize, currency, StockName
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        values = (
+            data.get('contractSymbol', 'UNKNOWN'),
+            data['lastTradeDate'],
+            data['expirationDate'],
+            float(data['strike']),
+            float(data.get('lastPrice')) if data.get('lastPrice') is not None else None,
+            float(data.get('bid')) if data.get('bid') is not None else None,
+            float(data.get('ask')) if data.get('ask') is not None else None,
+            float(data.get('change')) if data.get('change') is not None else None,
+            float(data.get('percentChange')) if data.get('percentChange') is not None else None,
+            int(data.get('volume')) if data.get('volume') is not None else None,
+            int(data.get('openInterest')) if data.get('openInterest') is not None else None,
+            float(data.get('impliedVolatility')) if data.get('impliedVolatility') is not None else None,
+            1 if data.get('inTheMoney', False) else 0,
+            data.get('contractSize', 'REGULAR'),
+            data.get('currency', 'USD'),
+            data['symbol']
+        )
+        try:
+            self.cursor.execute(query, values)
+            self.conn.commit()
+        except pyodbc.Error as e:
+            logger.error(f"Failed to write option data to {table}: {e}")
+            self.connect()  # Reconnect on failure
+            self.cursor.execute(query, values)
+            self.conn.commit()
 
     def close(self):
         if self.cursor:

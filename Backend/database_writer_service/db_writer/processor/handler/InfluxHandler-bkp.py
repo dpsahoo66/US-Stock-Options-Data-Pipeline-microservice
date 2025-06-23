@@ -12,16 +12,16 @@ class InfluxHandler:
             token=os.getenv("INFLUX_TOKEN"),
             org=os.getenv("INFLUX_ORG")
         )
-        self.write_api = self.client.write_api()
+        self.write_api = self.client.write_api(write_options=WritePrecision.NS)
         self.bucket = os.getenv("INFLUX_BUCKET")
 
-    def write_data(self, data):
+    def write_data(self, batch):
         points = []
-        for r in data:
+        for r in batch:
             try:
                 p = Point("stock_15min")\
-                    .tag("StockName", r["symbol"])\
-                    .time(r["datetime"], WritePrecision.NS)\
+                    .tag("StockName", r["StockName"])\
+                    .time(r["Date"], WritePrecision.NS)\
                     .field("open", float(r["open"]))\
                     .field("high", float(r["high"]))\
                     .field("low", float(r["low"]))\
@@ -32,5 +32,5 @@ class InfluxHandler:
             except Exception as e:
                 logger.warning(f"Skipping bad record: {e}")
         if points:
-            self.write_api.write(bucket=self.bucket, record=points,write_precision=WritePrecision.NS)
+            self.write_api.write(bucket=self.bucket, record=points)
             logger.info(f"Influx: wrote {len(points)} points")

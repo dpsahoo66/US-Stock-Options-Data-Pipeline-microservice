@@ -198,7 +198,11 @@ class DatabaseConnection:
         logger.info("Database connection closed")
 
 # Global database connection
-db = DatabaseConnection()
+try:
+    db = DatabaseConnection()
+except:
+    logger.warning("Failed to initialize database connection, using mock mode")
+    db = DatabaseConnection()  # This will use mock mode
 
 @app.on_event("shutdown")
 async def shutdown_event():

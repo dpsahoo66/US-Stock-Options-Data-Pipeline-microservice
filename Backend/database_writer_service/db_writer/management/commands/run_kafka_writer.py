@@ -5,7 +5,7 @@ import json, time, logging
 
 from db_writer.handler.InfluxHandler import InfluxHandler
 # from db_writer.handler.DailySQLHandler import DailySQLHandler
-# from db_writer.handler.HistoricalSQLHandler import HistoricalSQLHandler
+from db_writer.handler.HistoricalSQLHandler import HistoricalSQLHandler
 from db_writer.handler.OptionsSQLHandler import OptionsSQLHandler
 from db_writer.kafka import kafkaConfig
 from django.conf import settings
@@ -26,7 +26,7 @@ class Command(BaseCommand):
         ])
         influx = InfluxHandler()
         # daily = DailySQLHandler()
-        # historical = HistoricalSQLHandler()
+        historical = HistoricalSQLHandler()
         options = OptionsSQLHandler()
 
         while True:
@@ -63,6 +63,11 @@ class Command(BaseCommand):
                     influx.write_data(data)
 
                     logger.info(f"15 min data inserted succesfully ")
+                elif topic == settings.KAFKA_TOPICS['processed-historical']:
+
+                    historical.write_data(data)
+
+                    logger.info(f"Historical data inserted succesfully ")
             except Exception as e:
                 logger.error(f"Processing error: {e}")
 

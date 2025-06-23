@@ -1,5 +1,6 @@
-import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
@@ -16,6 +17,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { HistoricalData } from './historical-data/historical-data';
 import { FormsModule } from '@angular/forms';
 import { OptionsData } from './options-data/options-data';
@@ -33,6 +35,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     HttpClientModule,
     AppRoutingModule,
     MatToolbarModule,
@@ -44,12 +47,11 @@ import { HighchartsChartModule } from 'highcharts-angular';
     MatButtonModule,
     MatSelectModule,
     MatProgressSpinnerModule,
+    MatFormFieldModule,
     FormsModule,
     HighchartsChartModule
   ],
-  providers: [
-    provideBrowserGlobalErrorListeners()
-  ],
+  providers: [],
   bootstrap: [App]
 })
 export class AppModule { }

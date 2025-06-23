@@ -321,8 +321,8 @@ async def get_stock_summary(stock_symbol: str):
         return {
             "stock_name": stock_symbol.upper(),
             "total_records": row[0],
-            "earliest_date": row[1].strftime('%Y-%m-%d') if row[1] else None,
-            "latest_date": row[2].strftime('%Y-%m-%d') if row[2] else None,
+            "earliest_date": row[1].strftime('%Y-%m-%d') if hasattr(row[1], 'strftime') else str(row[1]),
+            "latest_date": row[2].strftime('%Y-%m-%d') if hasattr(row[2], 'strftime') else str(row[2]),
             "average_close": round(float(row[3]), 2) if row[3] else 0.0,
             "min_low": float(row[4]) if row[4] else 0.0,
             "max_high": float(row[5]) if row[5] else 0.0,

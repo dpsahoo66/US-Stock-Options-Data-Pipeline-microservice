@@ -1,10 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { StockDataService, StockDataPoint, StockListResponse } from '../services/stock-data.service';
 import * as Highcharts from 'highcharts';
-import HighchartsStock from 'highcharts/modules/stock';
-
-// Initialize the stock module
-HighchartsStock(Highcharts);
 
 @Component({
   selector: 'app-historical-data',
@@ -20,6 +16,9 @@ export class HistoricalData implements OnInit {
   stockData: StockDataPoint[] = [];
   loading: boolean = false;
   error: string = '';
+
+  // Expose Math for template
+  Math = Math;
   
   // Chart configuration
   chartOptions: Highcharts.Options = {
@@ -37,10 +36,7 @@ export class HistoricalData implements OnInit {
         text: 'Price ($)'
       },
       height: '60%',
-      lineWidth: 2,
-      resize: {
-        enabled: true
-      }
+      lineWidth: 2
     }, {
       title: {
         text: 'Volume'
@@ -119,14 +115,6 @@ export class HistoricalData implements OnInit {
       point.volume
     ]);
 
-    const ohlcData = this.stockData.map(point => [
-      new Date(point.date).getTime(),
-      point.open,
-      point.high,
-      point.low,
-      point.close
-    ]);
-
     this.chartOptions = {
       ...this.chartOptions,
       title: {
@@ -134,9 +122,9 @@ export class HistoricalData implements OnInit {
       },
       series: [
         {
-          type: 'candlestick',
+          type: 'line',
           name: `${this.selectedStock} Price`,
-          data: ohlcData,
+          data: priceData,
           yAxis: 0
         },
         {
@@ -148,5 +136,47 @@ export class HistoricalData implements OnInit {
         }
       ]
     };
+  }
+
+  // Helper methods for template
+  getLatestPrice(): string {
+    if (this.stockData.length > 0) {
+      const latest = this.stockData[this.stockData.length - 1];
+      return latest?.close?.toFixed(2) || '0.00';
+    }
+    return '0.00';
+  }
+
+  getHighestPrice(): string {
+    if (this.stockData.length > 0) {
+      const highest = Math.max(...this.stockData.map(d => d.high));
+      return highest.toFixed(2);
+    }
+    return '0.00';
+  }
+
+  getLowestPrice(): string {
+    if (this.stockData.length > 0) {
+      const lowest = Math.min(...this.stockData.map(d => d.low));
+      return lowest.toFixed(2);
+    }
+    return '0.00';
+  }
+
+  getAverageVolume(): string {
+    if (this.stockData.length > 0) {
+      const avgVolume = this.stockData.reduce((sum, d) => sum + d.volume, 0) / this.stockData.length;
+      return avgVolume.toLocaleString();
+    }
+    return '0';
+  }
+
+  getDateRange(): string {
+    if (this.stockData.length > 0) {
+      const firstDate = this.stockData[0]?.date || '';
+      const lastDate = this.stockData[this.stockData.length - 1]?.date || '';
+      return `${firstDate} to ${lastDate}`;
+    }
+    return '';
   }
 }

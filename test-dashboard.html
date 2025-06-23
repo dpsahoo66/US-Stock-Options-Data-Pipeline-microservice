@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Data Dashboard</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/stock.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        select, button {
+            padding: 8px 12px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #chart-container {
+            height: 500px;
+            margin: 20px 0;
+        }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .summary-item {
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Azure SQL Stock Data Dashboard</h1>
+        
+        <div class="controls">
+            <label>Select Stock: </label>
+            <select id="stockSelect">
+                <option value="">Loading...</option>
+            </select>
+            <button onclick="loadStockData()">Load Data</button>
+            <button onclick="loadStockList()">Refresh Stocks</button>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="loading" class="loading" style="display: none;">Loading stock data...</div>
+        
+        <div id="chart-container"></div>
+        
+        <div id="summary" class="summary" style="display: none;">
+            <div class="summary-item">
+                <strong>Stock:</strong> <span id="stockName">-</span>
+            </div>
+            <div class="summary-item">
+                <strong>Total Records:</strong> <span id="totalRecords">-</span>
+            </div>
+            <div class="summary-item">
+                <strong>Latest Price:</strong> $<span id="latestPrice">-</span>
+            </div>
+            <div class="summary-item">
+                <strong>Highest Price:</strong> $<span id="highestPrice">-</span>
+            </div>
+            <div class="summary-item">
+                <strong>Lowest Price:</strong> $<span id="lowestPrice">-</span>
+            </div>
+            <div class="summary-item">
+                <strong>Date Range:</strong> <span id="dateRange">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let currentChart = null;
+
+        // Load available stocks
+        async function loadStockList() {
+            try {
+                const response = await fetch(`${API_BASE}/stocks/list`);
+                const data = await response.json();
+                
+                const select = document.getElementById('stockSelect');
+                select.innerHTML = '<option value="">Select a stock...</option>';
+                
+                data.stocks.forEach(stock => {
+                    const option = document.createElement('option');
+                    option.value = stock;
+                    option.textContent = stock;
+                    select.appendChild(option);
+                });
+
+                // Auto-select AAPL if available
+                if (data.stocks.includes('AAPL')) {
+                    select.value = 'AAPL';
+                    loadStockData();
+                }
+            } catch (error) {
+                showError('Failed to load stock list: ' + error.message);
+            }
+        }
+
+        // Load stock data and create chart
+        async function loadStockData() {
+            const stockSymbol = document.getElementById('stockSelect').value;
+            if (!stockSymbol) {
+                showError('Please select a stock symbol');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                const response = await fetch(`${API_BASE}/stocks/${stockSymbol}/historical?limit=100`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.data && data.data.length > 0) {
+                    createChart(data);
+                    updateSummary(data);
+                } else {
+                    showError('No data available for ' + stockSymbol);
+                }
+            } catch (error) {
+                showError('Failed to load stock data: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Create Highcharts chart
+        function createChart(stockData) {
+            const priceData = stockData.data.map(point => [
+                new Date(point.date).getTime(),
+                point.close
+            ]);
+
+            const volumeData = stockData.data.map(point => [
+                new Date(point.date).getTime(),
+                point.volume
+            ]);
+
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            currentChart = Highcharts.chart('chart-container', {
+                title: {
+                    text: `${stockData.stock_name} Stock Price History`
+                },
+                subtitle: {
+                    text: `Last ${stockData.data.length} trading days`
+                },
+                xAxis: {
+                    type: 'datetime',
+                    title: { text: 'Date' }
+                },
+                yAxis: [{
+                    title: { text: 'Price ($)' },
+                    height: '60%',
+                    lineWidth: 2
+                }, {
+                    title: { text: 'Volume' },
+                    top: '65%',
+                    height: '30%',
+                    offset: 0,
+                    lineWidth: 2
+                }],
+                legend: {
+                    enabled: true
+                },
+                series: [{
+                    type: 'line',
+                    name: `${stockData.stock_name} Price`,
+                    data: priceData,
+                    yAxis: 0,
+                    color: '#007bff',
+                    lineWidth: 2
+                }, {
+                    type: 'column',
+                    name: 'Volume',
+                    data: volumeData,
+                    yAxis: 1,
+                    color: 'rgba(68, 170, 213, 0.5)'
+                }],
+                tooltip: {
+                    shared: true,
+                    formatter: function() {
+                        let tooltip = '<b>' + Highcharts.dateFormat('%Y-%m-%d', this.x) + '</b>';
+                        this.points.forEach(point => {
+                            if (point.series.name.includes('Price')) {
+                                tooltip += '<br/>' + point.series.name + ': $' + point.y.toFixed(2);
+                            } else {
+                                tooltip += '<br/>' + point.series.name + ': ' + point.y.toLocaleString();
+                            }
+                        });
+                        return tooltip;
+                    }
+                },
+                responsive: {
+                    rules: [{
+                        condition: { maxWidth: 500 },
+                        chartOptions: {
+                            legend: {
+                                layout: 'horizontal',
+                                align: 'center',
+                                verticalAlign: 'bottom'
+                            }
+                        }
+                    }]
+                }
+            });
+        }
+
+        // Update summary information
+        function updateSummary(stockData) {
+            const data = stockData.data;
+            
+            document.getElementById('stockName').textContent = stockData.stock_name;
+            document.getElementById('totalRecords').textContent = data.length;
+            
+            if (data.length > 0) {
+                const latestPrice = data[data.length - 1].close;
+                const highestPrice = Math.max(...data.map(d => d.high));
+                const lowestPrice = Math.min(...data.map(d => d.low));
+                const firstDate = data[0].date;
+                const lastDate = data[data.length - 1].date;
+                
+                document.getElementById('latestPrice').textContent = latestPrice.toFixed(2);
+                document.getElementById('highestPrice').textContent = highestPrice.toFixed(2);
+                document.getElementById('lowestPrice').textContent = lowestPrice.toFixed(2);
+                document.getElementById('dateRange').textContent = `${firstDate} to ${lastDate}`;
+            }
+            
+            document.getElementById('summary').style.display = 'grid';
+        }
+
+        // Utility functions
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStockList();
+        });
+    </script>
+</body>
+</html>

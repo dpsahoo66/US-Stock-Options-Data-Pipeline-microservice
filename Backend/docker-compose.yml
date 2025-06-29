@@ -125,6 +125,24 @@ services:
       - minio
     networks:
       - stock_pipeline
+  
+  data_api_service:
+    build:
+      context: ./data_api_service
+      dockerfile: Dockerfile
+    environment:
+      - SQL_SERVER=dash-gtd.database.windows.net
+      - SQL_DATABASE=us_stock_options_db
+      - SQL_USERNAME=dash_gtd
+      - SQL_PASSWORD=wearethebest@69
+      - SQL_DRIVER=ODBC Driver 18 for SQL Server
+      - DJANGO_DEBUG=True
+      - DJANGO_SECRET_KEY=django-insecure-k^c404!2*woj(h(+ek*e#=0sh^qrjw9y-g34m^*qy=^=!43v%^
+    ports:
+      - "8006:8006"
+    networks:
+      - stock_pipeline
+    restart: unless-stopped
 
   monitoring:
     build:

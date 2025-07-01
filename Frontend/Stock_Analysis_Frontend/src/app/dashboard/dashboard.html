@@ -1,78 +1,172 @@
 <div class="dashboard-wrapper">
-  <div class="row">
-    <div class="col-xxl-12 col-xl-12 col-lg-12">
-      <!-- Stock selector -->
-      <mat-card
-        class="stock-selector-card"
-        *ngIf="!isLoading && availableStocks.length > 0"
-      >
-        <mat-card-content>
-          <mat-form-field appearance="outline">
-            <mat-label>Select Stock</mat-label>
-            <mat-select
-              [(value)]="selectedStock"
-              (selectionChange)="onStockChange($event.value)"
-            >
-              <mat-option
-                *ngFor="let stock of availableStocks"
-                [value]="stock"
-              >
-                {{ stock }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </mat-card-content>
-      </mat-card>
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1 class="dashboard-title">
+          <mat-icon>dashboard</mat-icon>
+          Market Dashboard
+        </h1>
+        <p class="dashboard-subtitle">Real-time market data and portfolio insights</p>
+      </div>
+      <div class="header-right">
+        <button 
+          mat-flat-button 
+          color="primary"
+          (click)="refreshData()" 
+          class="refresh-btn"
+          [disabled]="isLoading">
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+        <button 
+          mat-stroked-button 
+          (click)="toggleDisplayMode()" 
+          class="view-toggle-btn">
+          <mat-icon>{{ displayMode === 'grid' ? 'view_list' : 'view_module' }}</mat-icon>
+          {{ displayMode === 'grid' ? 'List' : 'Grid' }}
+        </button>
+      </div>
+    </div>
+  </div>
 
-      <!-- Loading -->
-      <mat-card class="dashboard-card" *ngIf="isLoading">
-        <mat-card-content class="loading-content">
-          <mat-spinner></mat-spinner>
-          <p>Loading stock data…</p>
-        </mat-card-content>
-      </mat-card>
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-card">
+      <mat-spinner diameter="40"></mat-spinner>
+      <h3>Loading Market Data</h3>
+      <p>Fetching real-time stock information...</p>
+    </div>
+  </div>
 
-      <!-- Error -->
-      <mat-card
-        class="dashboard-card error-card"
-        *ngIf="error && !isLoading"
-      >
-        <mat-card-content>
-          <div class="error-content">
-            <mat-icon color="warn">error</mat-icon>
-            <h3>Error Loading Data</h3>
-            <p>{{ error }}</p>
-            <button mat-raised-button color="primary" (click)="loadStockData()">
-              Retry
-            </button>
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !isLoading">
+    <div class="error-card">
+      <mat-icon>error_outline</mat-icon>
+      <h3>Unable to Load Data</h3>
+      <p>{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="loadStockData()">
+        <mat-icon>refresh</mat-icon>
+        Try Again
+      </button>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content" *ngIf="!isLoading && !error">
+    
+    <!-- Market Summary Cards -->
+    <div class="market-summary">
+      <div class="summary-card portfolio-value">
+        <div class="card-header">
+          <mat-icon>account_balance_wallet</mat-icon>
+          <span class="card-title">Portfolio Value</span>
+        </div>
+        <div class="card-value">{{ getTotalMarketValue() }}</div>
+        <div class="card-change positive">+2.4% Today</div>
+      </div>
+
+      <div class="summary-card total-stocks">
+        <div class="card-header">
+          <mat-icon>pie_chart</mat-icon>
+          <span class="card-title">Total Stocks</span>
+        </div>
+        <div class="card-value">{{ stockCharts.length }}</div>
+        <div class="card-subtitle">In Portfolio</div>
+      </div>
+
+      <div class="summary-card gainers">
+        <div class="card-header">
+          <mat-icon>trending_up</mat-icon>
+          <span class="card-title">Gainers</span>
+        </div>
+        <div class="card-value positive">{{ getGainersCount() }}</div>
+        <div class="card-subtitle">Stocks Up</div>
+      </div>
+
+      <div class="summary-card losers">
+        <div class="card-header">
+          <mat-icon>trending_down</mat-icon>
+          <span class="card-title">Losers</span>
+        </div>
+        <div class="card-value negative">{{ getLosersCount() }}</div>
+        <div class="card-subtitle">Stocks Down</div>
+      </div>
+    </div>
+
+    <!-- Stock Cards Grid -->
+    <div class="stocks-grid" [class.list-view]="displayMode === 'list'" [class.grid-view]="displayMode === 'grid'">
+      <div 
+        *ngFor="let stockChart of stockCharts; let i = index" 
+        class="stock-card"
+        [class.no-data-card]="!stockChart.hasData"
+        [class.positive]="stockChart.change >= 0"
+        [class.negative]="stockChart.change < 0">
+        
+        <!-- Stock Header -->
+        <div class="stock-header">
+          <div class="stock-info">
+            <div class="stock-symbol">{{ stockChart.symbol }}</div>
+            <div class="stock-name">{{ getCompanyName(stockChart.symbol) }}</div>
           </div>
-        </mat-card-content>
-      </mat-card>
+          <div class="stock-price" *ngIf="stockChart.hasData">
+            <div class="current-price">{{ formatCurrency(stockChart.lastPrice) }}</div>
+            <div class="price-change" [class]="getChangeClass(stockChart.change)">
+              <span class="change-amount">{{ formatCurrency(stockChart.change) }}</span>
+              <span class="change-percent">({{ formatPercent(stockChart.changePercent) }})</span>
+            </div>
+          </div>
+        </div>
 
-      <!-- Chart -->
-      <mat-card
-        class="dashboard-card"
-        *ngIf="!isLoading && !error && chartData.length > 0"
-      >
-        <mat-card-content>
-          <!-- Chart container now referenced by ViewChild -->
+        <!-- Chart Container -->
+        <div class="stock-chart" *ngIf="stockChart.hasData">
           <div #chartContainer class="chart-container"></div>
-        </mat-card-content>
-      </mat-card>
+        </div>
 
-      <!-- No data fallback -->
-      <mat-card
-        class="dashboard-card"
-        *ngIf="!isLoading && !error && chartData.length === 0"
-      >
-        <mat-card-content>
-          <div class="no-data-content">
-            <mat-icon>trending_up</mat-icon>
-            <h3>No Data Available</h3>
-            <p>No stock data available for the selected symbol.</p>
+        <!-- Stock Details -->
+        <div class="stock-details" *ngIf="stockChart.hasData">
+          <div class="detail-item">
+            <span class="label">Volume</span>
+            <span class="value">{{ formatNumber(stockChart.volume) }}</span>
           </div>
-        </mat-card-content>
-      </mat-card>
+          <div class="detail-item">
+            <span class="label">52W High</span>
+            <span class="value">{{ formatCurrency(stockChart.high52Week || 0) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">52W Low</span>
+            <span class="value">{{ formatCurrency(stockChart.low52Week || 0) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Market Cap</span>
+            <span class="value">{{ stockChart.marketCap }}</span>
+          </div>
+        </div>
+
+        <!-- No Data Message -->
+        <div *ngIf="!stockChart.hasData" class="no-data-message">
+          <mat-icon>info_outline</mat-icon>
+          <h4>Data Not Available</h4>
+          <p>No recent trading data available for {{ stockChart.symbol }}</p>
+          <button mat-stroked-button (click)="refreshData()">
+            <mat-icon>refresh</mat-icon>
+            Retry
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="stockCharts.length === 0">
+      <div class="empty-content">
+        <mat-icon>trending_flat</mat-icon>
+        <h3>No Stock Data Available</h3>
+        <p>No stock market data is currently available. Please check your connection and try again.</p>
+        <button mat-raised-button color="primary" (click)="loadStockData()">
+          <mat-icon>refresh</mat-icon>
+          Reload Data
+        </button>
+      </div>
     </div>
   </div>
 </div>

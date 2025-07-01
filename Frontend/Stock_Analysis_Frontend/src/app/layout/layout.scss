@@ -1,15 +1,87 @@
+// Layout styling with new color scheme
+:root {
+  --navbar-height: 70px;
+  --sidebar-width: 280px;
+  --primary-purple: #7c3aed;
+  --primary-blue: #3b82f6;
+  --dark-bg: #1a1a1a;
+  --sidebar-bg: #2d2d2d;
+  --content-bg: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1a6;
+  --border-color: #404040;
+  --hover-bg: #3a3a3a;
+}
+
 .sidenav-container {
-  height: 100%;
+  height: 100vh;
+  background: var(--dark-bg);
+  
+  // Adjust for fixed navbar
+  padding-top: var(--navbar-height);
 }
 
 .app-sidenav {
-  width: 240px;          //  keep in sync with your design
-  background: #111;      //  same color you use now
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, var(--sidebar-bg) 0%, #1f1f1f 100%);
+  border-right: 1px solid var(--border-color);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  
+  // Adjust for navbar height
+  margin-top: calc(-1 * var(--navbar-height));
+  padding-top: var(--navbar-height);
+  height: 100vh;
 }
 
 .content-area {
-  height: 100%;
+  height: calc(100vh - var(--navbar-height));
   overflow: auto;
-  padding: 16px;         //  or whatever spacing you want
-  background: #0e0e0e;   //  keeps the dark theme
+  background: linear-gradient(135deg, var(--content-bg) 0%, #2d1b69 100%);
+  background-attachment: fixed;
+  
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--dark-bg);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-purple);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  :root {
+    --navbar-height: 60px;
+    --sidebar-width: 240px;
+  }
+  
+  .sidenav-container {
+    padding-top: var(--navbar-height);
+  }
+  
+  .app-sidenav {
+    width: var(--sidebar-width);
+    margin-top: calc(-1 * var(--navbar-height));
+    padding-top: var(--navbar-height);
+  }
+  
+  .content-area {
+    height: calc(100vh - var(--navbar-height));
+  }
+}
+
+@media (max-width: 480px) {
+  .app-sidenav {
+    width: 200px;
+  }
 }

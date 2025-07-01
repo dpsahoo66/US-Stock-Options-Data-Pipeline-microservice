@@ -1,18 +1,94 @@
-<!-- <mat-toolbar color="primary">
-  <span>Stock Analysis</span>
+<mat-toolbar class="navbar">
+  <!-- Logo/Brand -->
+  <div class="navbar-brand" (click)="navigateToHome()">
+    <mat-icon class="brand-icon">trending_up</mat-icon>
+    <span class="brand-title">StockHub</span>
+    <span class="brand-subtitle">Finance Dashboard</span>
+  </div>
+
+  <!-- Spacer -->
   <span class="spacer"></span>
 
-  <mat-form-field appearance="outline" class="search-field">
-    <input matInput placeholder="Search stocks..." [(ngModel)]="searchTerm">
-  </mat-form-field>
-  <button mat-icon-button (click)="onSearch()">
-    <mat-icon>search</mat-icon>
-  </button>
-</mat-toolbar> -->
+  <!-- Search Section -->
+  <div class="search-container">
+    <div class="search-wrapper">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        class="search-field" 
+        type="text" 
+        placeholder="Search stocks, companies..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearchInput()"
+        (keyup.enter)="onSearch()"
+        (focus)="onSearchFocus()"
+        (blur)="onSearchBlur()"
+        autocomplete="off">
+      
+      <!-- Loading Spinner -->
+      <mat-spinner 
+        *ngIf="isSearching" 
+        class="search-spinner" 
+        diameter="20">
+      </mat-spinner>
+      
+      <!-- Clear Button -->
+      <button 
+        *ngIf="searchTerm && !isSearching" 
+        class="clear-btn"
+        (click)="searchTerm = ''; clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
 
-<mat-toolbar>
-  <span class="title">DASH-GTD FINANCE DASHBOARD</span>
-  <span class="spacer"></span>
-  <input class="search-field" type="text" placeholder="Search stocks..." [(ngModel)]="searchTerm" (keyup.enter)="onSearch()">
-  <button (click)="onSearch()">Search</button>
+    <!-- Search Results Dropdown -->
+    <div class="search-results" *ngIf="showSearchResults">
+      <!-- Loading State -->
+      <div class="search-loading" *ngIf="isSearching">
+        <mat-icon>search</mat-icon>
+        <span>Searching...</span>
+      </div>
+
+      <!-- Results -->
+      <div class="search-result-item" 
+           *ngFor="let result of searchResults"
+           (click)="selectSearchResult(result)">
+        <div class="result-icon">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <div class="result-content">
+          <div class="result-symbol">{{ result.symbol }}</div>
+          <div class="result-name">{{ result.name }}</div>
+          <div class="result-description">{{ result.description }}</div>
+        </div>
+        <mat-icon class="result-arrow">arrow_forward</mat-icon>
+      </div>
+
+      <!-- No Results -->
+      <div class="no-results" *ngIf="!isSearching && searchResults.length === 0 && searchTerm.trim()">
+        <mat-icon>search_off</mat-icon>
+        <span>No stocks found for "{{ searchTerm }}"</span>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="search-actions" *ngIf="!isSearching && searchResults.length > 0">
+        <button class="action-btn" (click)="onSearch()">
+          <mat-icon>search</mat-icon>
+          Search all data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Actions -->
+  <div class="user-actions">
+    <button mat-icon-button class="action-btn" title="Refresh Data">
+      <mat-icon>refresh</mat-icon>
+    </button>
+    <button mat-icon-button class="action-btn" title="Settings">
+      <mat-icon>settings</mat-icon>
+    </button>
+    <button mat-icon-button class="action-btn" title="Help">
+      <mat-icon>help_outline</mat-icon>
+    </button>
+  </div>
 </mat-toolbar>

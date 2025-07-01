@@ -1,6 +1,128 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles inspired by Yahoo Finance */
+
+/* Global color variables */
+:root {
+  --primary-purple: #7c3aed;
+  --primary-blue: #3b82f6;
+  --success-green: #10b981;
+  --danger-red: #ef4444;
+  --warning-yellow: #f59e0b;
+  --dark-bg: #1a1a1a;
+  --card-bg: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1a6;
+  --border-color: #404040;
+  --hover-bg: #3a3a3a;
+}
+
 html, body {
   height: 100%;
   margin: 0;
-  overflow: hidden;
+  padding: 0;
+  font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--dark-bg);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+body {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d1b69 100%);
+  background-attachment: fixed;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-purple);
+}
+
+/* Global utility classes */
+.text-success {
+  color: var(--success-green) !important;
+}
+
+.text-danger {
+  color: var(--danger-red) !important;
+}
+
+.text-warning {
+  color: var(--warning-yellow) !important;
+}
+
+.bg-success {
+  background-color: var(--success-green) !important;
+}
+
+.bg-danger {
+  background-color: var(--danger-red) !important;
+}
+
+.bg-warning {
+  background-color: var(--warning-yellow) !important;
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Material Design overrides for dark theme */
+.mat-app-background {
+  background-color: var(--dark-bg) !important;
+}
+
+/* Custom button styles */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-blue) 100%);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading {
+  animation: pulse 2s infinite;
 }

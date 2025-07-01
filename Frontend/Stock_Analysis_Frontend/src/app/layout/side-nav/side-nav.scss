@@ -1,64 +1,119 @@
-@use 'sass:color';
-
-$primary-bg: #1A1A1A;
-$accent-color: #272727;
-$text-color: #D9E1FA;
-$text-color-selected: #CB3CFF;
-$border-color: #313131;
-$secondary-accent: #4ECDC4;
-$neutral-highlight: #A3BFFA;
-$bg-accent: #2A3550;
-
-:host {
-  display: block;
-  height: calc(100vh - 60px); /* Adjust height to exclude navbar */
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+// Side navigation styling
+:root {
+  --primary-purple: #7c3aed;
+  --primary-blue: #3b82f6;
+  --success-green: #10b981;
+  --sidebar-bg: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1a6;
+  --hover-bg: #3a3a3a;
+  --active-bg: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-blue) 100%);
+  --border-color: #404040;
 }
 
 mat-nav-list {
-  background-color: $primary-bg;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-  color: $text-color;
-  height: 100%;
-  width: 210px;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  border-right: 2px solid $border-color;
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.5);
-  position: fixed;
-  top: 60px; /* Start below navbar */
-  left: 0;
-  z-index: 900;
-
+  padding: 20px 0;
+  
   a[mat-list-item] {
-    display: flex;
-    align-items: center;
-    padding: 20px 16px;
-    color: $text-color;
-    font-size: 15px;
+    color: var(--text-secondary);
+    font-size: 14px;
     font-weight: 500;
-    text-transform: uppercase;
-    text-decoration: none;
-    width: 100%;
-    transition: color 0.2s ease;
-
-    mat-icon {
-      margin-right: 12px;
-      color: $accent-color;
-      font-size: 24px;
+    margin: 4px 16px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    
+    // Default state
+    &:not(.active) {
+      &:hover {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+        transform: translateX(4px);
+      }
     }
-
-    &:hover {
-      color: $text-color;
-    }
-
+    
+    // Active state
     &.active {
-      color: $text-color-selected;
-      font-weight: 700;
+      background: var(--active-bg);
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+      
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 24px;
+        background: white;
+        border-radius: 0 2px 2px 0;
+      }
+    }
+    
+    // Icon spacing
+    ::ng-deep .mat-mdc-list-item-content {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px !important;
+    }
+  }
+}
+
+// Add navigation icons
+a[mat-list-item] {
+  &[routerLink="/"] {
+    &::before {
+      content: 'dashboard';
+      font-family: 'Material Icons';
+      margin-right: 12px;
+      font-size: 20px;
+    }
+  }
+  
+  &[routerLink="/HistoricalData"] {
+    &::before {
+      content: 'trending_up';
+      font-family: 'Material Icons';
+      margin-right: 12px;
+      font-size: 20px;
+    }
+  }
+  
+  &[routerLink="/OptionsData"] {
+    &::before {
+      content: 'account_balance';
+      font-family: 'Material Icons';
+      margin-right: 12px;
+      font-size: 20px;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  mat-nav-list {
+    padding: 16px 0;
+    
+    a[mat-list-item] {
+      font-size: 13px;
+      margin: 3px 12px;
+      
+      ::ng-deep .mat-mdc-list-item-content {
+        padding: 10px 12px !important;
+      }
+    }
+  }
+}
+
+// Angular Material overrides
+::ng-deep {
+  .mat-mdc-nav-list {
+    .mat-mdc-list-item {
+      --mdc-list-list-item-leading-icon-color: inherit;
+      --mdc-list-list-item-label-text-color: inherit;
     }
   }
 }

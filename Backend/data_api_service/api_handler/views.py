@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 class StockDataView(APIView):
 
     def get(self, request):
+        conn = None
+        cursor = None
         try:
             logger.info("Resolving server name...")
             server_ip = socket.gethostbyname("dash-gtd.database.windows.net")
@@ -72,21 +74,23 @@ class StockDataView(APIView):
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         finally:
-            for cursor, conn in [(cursor, conn)]:
-                if cursor:
-                    try:
-                        cursor.close()
-                    except pyodbc.Error as e:
-                        logger.error(f"Error closing cursor: {e}")
-                if conn:
-                    try:
-                        conn.close()
-                    except pyodbc.Error as e:
-                        logger.error(f"Error closing connection: {e}")
+            if cursor:
+                try:
+                    cursor.close()
+                except pyodbc.Error as e:
+                    logger.error(f"Error closing cursor: {e}")
+            if conn:
+                try:
+                    conn.close()
+                except pyodbc.Error as e:
+                    logger.error(f"Error closing connection: {e}")
 
 class OptionsDataView(APIView):
 
     def get(self, request):
+        conn = None
+        cursor1 = None
+        cursor2 = None
         try:
             # Resolve DNS
             logger.info("Resolving server name...")
@@ -102,7 +106,7 @@ class OptionsDataView(APIView):
             # Verify tables
             cursor1.execute("SELECT 1 FROM sys.tables WHERE name = 'put_options'")
             if not cursor1.fetchone():
-                raise Exception("StockData table not found in default DB")
+                raise Exception("put_options table not found in default DB")
             
             select_put_option_query = "SELECT contractSymbol, lastTradeDate, expirationDate, strike, lastPrice, bid, ask, change, percentChange, volume, openInterest, impliedVolatility, inTheMoney, contractSize, currency, StockName FROM put_options"
             data1 = []
@@ -130,7 +134,7 @@ class OptionsDataView(APIView):
             
             cursor2.execute("SELECT 1 FROM sys.tables WHERE name = 'call_options'")
             if not cursor2.fetchone():
-                raise Exception("StockData table not found in default DB")
+                raise Exception("call_options table not found in default DB")
             
             select_call_option_query = "SELECT contractSymbol, lastTradeDate, expirationDate, strike, lastPrice, bid, ask, change, percentChange, volume, openInterest, impliedVolatility, inTheMoney, contractSize, currency, StockName FROM call_options"
             data2 = []
@@ -186,17 +190,21 @@ class OptionsDataView(APIView):
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         finally:
-            for cursor, conn in [(cursor1, conn)]:
-                if cursor:
-                    try:
-                        cursor.close()
-                    except pyodbc.Error as e:
-                        logger.error(f"Error closing cursor: {e}")
-                if conn:
-                    try:
-                        conn.close()
-                    except pyodbc.Error as e:
-                        logger.error(f"Error closing connection: {e}")
+            if cursor1:
+                try:
+                    cursor1.close()
+                except pyodbc.Error as e:
+                    logger.error(f"Error closing cursor1: {e}")
+            if cursor2:
+                try:
+                    cursor2.close()
+                except pyodbc.Error as e:
+                    logger.error(f"Error closing cursor2: {e}")
+            if conn:
+                try:
+                    conn.close()
+                except pyodbc.Error as e:
+                    logger.error(f"Error closing connection: {e}")
 
 
 class SearchStockView(APIView):
@@ -208,6 +216,13 @@ class SearchStockView(APIView):
                 'message': 'stock_name parameter is required'
             }, status=status.HTTP_400_BAD_REQUEST)
 
+        conn1 = None
+        conn2 = None
+        conn3 = None
+        cursor1 = None
+        cursor2 = None
+        cursor3 = None
+        
         try:
             logger.info("Resolving server name...")
             server_ip = socket.gethostbyname("dash-gtd.database.windows.net")
@@ -344,12 +359,13 @@ class SearchStockView(APIView):
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         finally:
-            for cursor, conn in [(cursor1, conn1), (cursor2, conn2), (cursor3, conn3)]:
+            for cursor in [cursor1, cursor2, cursor3]:
                 if cursor:
                     try:
                         cursor.close()
                     except pyodbc.Error as e:
                         logger.error(f"Error closing cursor: {e}")
+            for conn in [conn1, conn2, conn3]:
                 if conn:
                     try:
                         conn.close()
@@ -365,6 +381,9 @@ class SearchStockName(APIView):
                 'message': 'stock_name parameter is required'
             }, status=status.HTTP_400_BAD_REQUEST)
 
+        conn = None
+        cursor = None
+        
         try:
             logger.info("Resolving server name...")
             server_ip = socket.gethostbyname("dash-gtd.database.windows.net")
@@ -420,14 +439,13 @@ class SearchStockName(APIView):
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         finally:
-            for cursor, conn in [(cursor, conn)]:
-                if cursor:
-                    try:
-                        cursor.close()
-                    except pyodbc.Error as e:
-                        logger.error(f"Error closing cursor: {e}")
-                if conn:
-                    try:
-                        conn.close()
-                    except pyodbc.Error as e:
-                        logger.error(f"Error closing connection: {e}")
+            if cursor:
+                try:
+                    cursor.close()
+                except pyodbc.Error as e:
+                    logger.error(f"Error closing cursor: {e}")
+            if conn:
+                try:
+                    conn.close()
+                except pyodbc.Error as e:
+                    logger.error(f"Error closing connection: {e}")

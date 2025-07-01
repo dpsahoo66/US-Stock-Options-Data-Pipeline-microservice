@@ -41,10 +41,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'rest_framework',
+    'corsheaders',
     'api_handler',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -144,7 +146,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.dummy',
         'NAME': os.getenv('SQL_DATABASE', 'us_stock_options_db'),
         'OPTIONS': {
-            'driver': os.getenv('SQL_DRIVER', 'ODBC Driver 17 for SQL Server'),
+            'driver': os.getenv('SQL_DRIVER', 'ODBC Driver 18 for SQL Server'),
             'host': os.getenv('SQL_SERVER', 'dash-gtd.database.windows.net'),
             'database': os.getenv('SQL_DATABASE', 'us_stock_options_db'),
             'user': os.getenv('SQL_USERNAME', 'dash_gtd'),
@@ -162,3 +164,18 @@ REST_FRAMEWORK = {
     ]
 }
 ALLOWED_HOSTS = ['*']
+
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+]
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
+    'OPTIONS'
+]

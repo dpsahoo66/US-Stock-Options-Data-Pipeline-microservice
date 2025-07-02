@@ -15,26 +15,26 @@
                 <mat-label>Search options</mat-label>
                 <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" 
                        placeholder="Enter stock symbol, contract symbol, or expiration date...">
-                <mat-icon matSuffix>search</mat-icon>
+                <mat-icon matSuffix></mat-icon>
               </mat-form-field>
               
               <button mat-raised-button color="primary" (click)="searchSpecificOptions()" 
                       [disabled]="!searchTerm.trim()">
-                <mat-icon>search</mat-icon>
+                <mat-icon></mat-icon>
                 Search API
               </button>
               
               <button mat-raised-button color="accent" (click)="exportToCSV('put')" 
                       [disabled]="putOptionsDataSource.filteredData.length === 0"
                       *ngIf="selectedTab === 0">
-                <mat-icon>download</mat-icon>
+                <mat-icon></mat-icon>
                 Export Put Options
               </button>
               
               <button mat-raised-button color="accent" (click)="exportToCSV('call')" 
                       [disabled]="callOptionsDataSource.filteredData.length === 0"
                       *ngIf="selectedTab === 1">
-                <mat-icon>download</mat-icon>
+                <mat-icon></mat-icon>
                 Export Call Options
               </button>
             </div>

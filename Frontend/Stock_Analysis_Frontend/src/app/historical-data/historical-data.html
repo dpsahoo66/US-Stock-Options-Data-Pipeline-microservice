@@ -8,127 +8,105 @@
         </mat-card-header>
         
         <mat-card-content>
-          <!-- Filters and Search -->
-          <div class="filters-section" *ngIf="!isLoading">
-            <div class="filter-row">
-              <mat-form-field appearance="outline" class="search-field">
-                <mat-label>Search stocks</mat-label>
-                <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" 
-                       placeholder="Enter stock symbol or date...">
-                <mat-icon matSuffix>search</mat-icon>
-              </mat-form-field>
-              
-              <mat-form-field appearance="outline" class="stock-filter">
-                <mat-label>Filter by Stock</mat-label>
-                <mat-select [(value)]="selectedStock" (selectionChange)="onStockFilterChange()">
-                  <mat-option value="">All Stocks</mat-option>
-                  <mat-option *ngFor="let stock of availableStocks.slice(1)" [value]="stock">
-                    {{ stock }}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-              
-              <button mat-raised-button color="primary" (click)="searchSpecificStock()" 
-                      [disabled]="!searchTerm.trim()">
-                <mat-icon>search</mat-icon>
-                Search API
-              </button>
-              
-              <button mat-raised-button color="accent" (click)="exportToCSV()" 
-                      [disabled]="dataSource.filteredData.length === 0">
-                <mat-icon>download</mat-icon>
-                Export CSV
-              </button>
-            </div>
-          </div>
+          <!-- Stock selector -->
+          <mat-card
+            class="stock-selector-card"
+            *ngIf="!isLoading && availableStocks.length > 0"
+          >
+            <mat-card-content>
+              <div class="filters-section">
+                <div class="filter-row">
+                  <mat-form-field appearance="outline" class="stock-selector">
+                    <mat-label>Select Stock</mat-label>
+                    <mat-select
+                      [(value)]="selectedStock"
+                      (selectionChange)="onStockChange($event.value)"
+                    >
+                      <mat-option value="">All Stocks</mat-option>
+                      <mat-option
+                        *ngFor="let stock of availableStocks"
+                        [value]="stock"
+                      >
+                        {{ stock }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Search stocks</mat-label>
+                    <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" 
+                           placeholder="Enter stock symbol...">
+                    <mat-icon matSuffix></mat-icon>
+                  </mat-form-field>
+                  
+                  <button mat-raised-button color="primary" (click)="searchSpecificStock()" 
+                          [disabled]="!searchTerm.trim()">
+                    <mat-icon></mat-icon>
+                    Search API
+                  </button>
+                  
+                  <button mat-raised-button color="accent" (click)="exportToCSV()" 
+                          [disabled]="!chartData.length">
+                    <mat-icon></mat-icon>
+                    Export CSV
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
 
-          <!-- Loading State -->
-          <div class="loading-content" *ngIf="isLoading">
-            <mat-spinner></mat-spinner>
-            <p>Loading historical data...</p>
-          </div>
+          <!-- Loading -->
+          <mat-card class="dashboard-card" *ngIf="isLoading">
+            <mat-card-content class="loading-content">
+              <mat-spinner></mat-spinner>
+              <p>Loading historical stock data…</p>
+            </mat-card-content>
+          </mat-card>
 
-          <!-- Error State -->
-          <div class="error-content" *ngIf="error && !isLoading">
-            <mat-icon color="warn">error</mat-icon>
-            <h3>Error Loading Data</h3>
-            <p>{{ error }}</p>
-            <button mat-raised-button color="primary" (click)="loadHistoricalData()">
-              Retry
-            </button>
-          </div>
+          <!-- Error -->
+          <mat-card
+            class="dashboard-card error-card"
+            *ngIf="error && !isLoading"
+          >
+            <mat-card-content>
+              <div class="error-content">
+                <mat-icon color="warn">error</mat-icon>
+                <h3>Error Loading Data</h3>
+                <p>{{ error }}</p>
+                <button mat-raised-button color="primary" (click)="loadHistoricalData()">
+                  Retry
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
 
-          <!-- Data Table -->
-          <div class="table-container" *ngIf="!isLoading && !error">
-            <table mat-table [dataSource]="dataSource" matSort class="stock-table">
-              <!-- Symbol Column -->
-              <ng-container matColumnDef="symbol">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Symbol</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="symbol-badge">{{ element.symbol }}</span>
-                </td>
-              </ng-container>
+          <!-- Chart -->
+          <mat-card
+            class="dashboard-card"
+            *ngIf="!isLoading && !error && chartData.length > 0"
+          >
+            <mat-card-content>
+              <!-- Chart container now referenced by ViewChild -->
+              <div #chartContainer class="chart-container"></div>
+            </mat-card-content>
+          </mat-card>
 
-              <!-- Date Column -->
-              <ng-container matColumnDef="date">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
-                <td mat-cell *matCellDef="let element">{{ element.date | date:'mediumDate' }}</td>
-              </ng-container>
-
-              <!-- Open Column -->
-              <ng-container matColumnDef="open">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Open</th>
-                <td mat-cell *matCellDef="let element">{{ formatCurrency(element.open) }}</td>
-              </ng-container>
-
-              <!-- High Column -->
-              <ng-container matColumnDef="high">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>High</th>
-                <td mat-cell *matCellDef="let element" [class.high-value]="element.high === element.high">
-                  {{ formatCurrency(element.high) }}
-                </td>
-              </ng-container>
-
-              <!-- Low Column -->
-              <ng-container matColumnDef="low">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Low</th>
-                <td mat-cell *matCellDef="let element" [class.low-value]="element.low === element.low">
-                  {{ formatCurrency(element.low) }}
-                </td>
-              </ng-container>
-
-              <!-- Close Column -->
-              <ng-container matColumnDef="close">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Close</th>
-                <td mat-cell *matCellDef="let element" [class.close-value]="true">
-                  {{ formatCurrency(element.close) }}
-                </td>
-              </ng-container>
-
-              <!-- Volume Column -->
-              <ng-container matColumnDef="volume">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Volume</th>
-                <td mat-cell *matCellDef="let element">{{ formatNumber(element.volume) }}</td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
-            </table>
-
-            <!-- No Data State -->
-            <div class="no-data-content" *ngIf="dataSource.filteredData.length === 0">
-              <mat-icon>trending_up</mat-icon>
-              <h3>No Historical Data Found</h3>
-              <p>No historical stock data matches your current filters.</p>
-            </div>
-          </div>
-
-          <!-- Paginator -->
-          <mat-paginator 
-            *ngIf="!isLoading && !error && dataSource.filteredData.length > 0"
-            [pageSizeOptions]="[10, 25, 50, 100]" 
-            showFirstLastButtons>
-          </mat-paginator>
+          <!-- No data fallback -->
+          <mat-card
+            class="dashboard-card"
+            *ngIf="!isLoading && !error && chartData.length === 0"
+          >
+            <mat-card-content>
+              <div class="no-data-content">
+                <mat-icon>trending_up</mat-icon>
+                <h3>No Historical Data Available</h3>
+                <p>No historical stock data available for the selected filters.</p>
+                <button mat-raised-button color="primary" (click)="loadHistoricalData()">
+                  Load All Data
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
         </mat-card-content>
       </mat-card>
     </div>

@@ -35,12 +35,15 @@
 
 .table-container {
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  overflow-y: hidden;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 100%;
 }
 
 .options-table {
   width: 100%;
+  min-width: 1200px; /* Ensure table has minimum width */
   background: rgba(0, 0, 0, 0.3);
   
   th {
@@ -49,12 +52,17 @@
     font-weight: 600;
     font-size: 13px;
     white-space: nowrap;
+    padding: 12px 8px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
   
   td {
     color: #fff;
     font-size: 12px;
     white-space: nowrap;
+    padding: 10px 8px;
   }
 }
 
@@ -227,6 +235,30 @@
   .mat-mdc-card-header .mat-mdc-card-subtitle {
     color: rgba(255, 255, 255, 0.8);
   }
+
+  .mat-mdc-raised-button {
+    background-color: #4ECDC4;
+    color: #1A1A1A;
+    font-weight: 600;
+    
+    &:hover {
+      background-color: #6ed6d1;
+    }
+    
+    &:disabled {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+  
+  .mat-mdc-raised-button.mat-accent {
+    background-color: #ffbf00;
+    color: #1A1A1A;
+    
+    &:hover {
+      background-color: #ffcc33;
+    }
+  }
 }
 
 .row {
@@ -237,9 +269,29 @@
   padding: 0;
 }
 
+// Add scrollbar styling for better visibility
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 191, 0, 0.5);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 191, 0, 0.7);
+}
+
 @media (max-width: 1200px) {
   .options-table {
     font-size: 11px;
+    min-width: 1000px;
     
     th, td {
       padding: 8px 4px;
@@ -263,6 +315,7 @@
   
   .options-table {
     font-size: 10px;
+    min-width: 800px;
     
     th, td {
       padding: 6px 2px;

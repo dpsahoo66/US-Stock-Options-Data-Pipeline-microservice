@@ -2,9 +2,9 @@
 
 from django.conf import settings
 import pyodbc
-import logging
+from db_writer.utils.logConfig import LogConfig
 
-logger = logging.getLogger(__name__)
+logger = LogConfig()
 
 class DailySQLHandler:
     def __init__(self):

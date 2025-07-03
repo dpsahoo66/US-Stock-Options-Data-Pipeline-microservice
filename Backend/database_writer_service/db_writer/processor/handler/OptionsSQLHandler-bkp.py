@@ -1,7 +1,8 @@
 # db_writer/handler/OptionsSQLHandler.py
-import pyodbc, os, logging
+import pyodbc, os
+from db_writer.utils.logConfig import LogConfig
 
-logger = logging.getLogger(__name__)
+logger = LogConfig()
 
 class OptionsSQLHandler:
     def __init__(self):

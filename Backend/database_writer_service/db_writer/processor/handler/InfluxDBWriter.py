@@ -3,9 +3,9 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from django.conf import settings
 from dateutil import parser
 from datetime import timezone
-import logging
+from db_writer.utils.logConfig import LogConfig
 
-logger = logging.getLogger(__name__)
+logger = LogConfig()
 
 class InfluxDBWriter:
     def __init__(self):

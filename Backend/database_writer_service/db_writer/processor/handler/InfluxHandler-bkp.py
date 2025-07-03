@@ -2,8 +2,9 @@
 from django.conf import settings
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 import os, logging
+from db_writer.utils.logConfig import LogConfig
 
-logger = logging.getLogger(__name__)
+logger = LogConfig()
 
 class InfluxHandler:
     def __init__(self):

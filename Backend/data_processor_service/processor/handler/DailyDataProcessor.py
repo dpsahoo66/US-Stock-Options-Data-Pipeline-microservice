@@ -1,8 +1,9 @@
 import pandas as pd
 import logging
-from .DataPreprocessor import DataPreprocessor
+from processor.handler.DataPreprocessor import DataPreprocessor
+from processor.utils.logConfig import LogConfig
 
-logger = logging.getLogger(__name__)
+logger = LogConfig()
 
 def DailyDataProcessor(data):
     

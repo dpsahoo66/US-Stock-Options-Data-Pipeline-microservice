@@ -1,12 +1,7 @@
 import pandas as pd
-import numpy as np
-from datetime import datetime
-import logging
-import pytz
-from dateutil import parser
-import re
+from processor.utils.logConfig import LogConfig
 
-logger = logging.getLogger(__name__)
+logger = LogConfig()
 
 class DataPreprocessor:
     """

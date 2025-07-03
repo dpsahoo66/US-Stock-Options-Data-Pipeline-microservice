@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,10 +22,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-#o&mlm!y^zv+cs3u0-f)l#vyrj8%_&bvkhnkdad96f(ppr3j#@"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("APP_DEBUG")
 
 ALLOWED_HOSTS = []
 
@@ -126,9 +128,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 #  Kafka Topics
 KAFKA_TOPICS = {
-    'processed-file-daily': 'processed-file-daily-data',
-    'processed-file-15min': 'processed-file-15min-data',
-    'processed-file-options': 'processed-file-options-data',
-    'processed-file-historical': 'processed-file-historical-data'
-
+    'processed-file-daily': os.getenv("KAFKA_PROCESSED_FILE_DAILY"),
+    'processed-file-15min': os.getenv("KAFKA_PROCESSED_FILE_15MIN"),
+    'processed-file-options': os.getenv("KAFKA_PROCESSED_FILE_OPTIONS"),
+    'processed-file-historical': os.getenv("KAFKA_PROCESSED_FILE_HISTORICAL"),
  }

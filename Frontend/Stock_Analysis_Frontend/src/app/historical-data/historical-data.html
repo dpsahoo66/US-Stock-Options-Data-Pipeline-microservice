@@ -1,1 +1,114 @@
-<p>historical-data works!</p>
+<div class="historical-data-wrapper">
+  <div class="row">
+    <div class="col-12">
+      <mat-card class="data-card">
+        <mat-card-header>
+          <mat-card-title>Historical Stock Data</mat-card-title>
+          <mat-card-subtitle>View and search historical stock market data</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <!-- Stock selector -->
+          <mat-card
+            class="stock-selector-card"
+            *ngIf="!isLoading && availableStocks.length > 0"
+          >
+            <mat-card-content>
+              <div class="filters-section">
+                <div class="filter-row">
+                  <mat-form-field appearance="outline" class="stock-selector">
+                    <mat-label>Select Stock</mat-label>
+                    <mat-select
+                      [(value)]="selectedStock"
+                      (selectionChange)="onStockChange($event.value)"
+                    >
+                      <mat-option value="">All Stocks</mat-option>
+                      <mat-option
+                        *ngFor="let stock of availableStocks"
+                        [value]="stock"
+                      >
+                        {{ stock }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Search stocks</mat-label>
+                    <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" 
+                           placeholder="Enter stock symbol...">
+                    <mat-icon matSuffix></mat-icon>
+                  </mat-form-field>
+                  
+                  <button mat-raised-button color="primary" (click)="searchSpecificStock()" 
+                          [disabled]="!searchTerm.trim()">
+                    <mat-icon></mat-icon>
+                    Search API
+                  </button>
+                  
+                  <button mat-raised-button color="accent" (click)="exportToCSV()" 
+                          [disabled]="!chartData.length">
+                    <mat-icon></mat-icon>
+                    Export CSV
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Loading -->
+          <mat-card class="dashboard-card" *ngIf="isLoading">
+            <mat-card-content class="loading-content">
+              <mat-spinner></mat-spinner>
+              <p>Loading historical stock data…</p>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Error -->
+          <mat-card
+            class="dashboard-card error-card"
+            *ngIf="error && !isLoading"
+          >
+            <mat-card-content>
+              <div class="error-content">
+                <mat-icon color="warn">error</mat-icon>
+                <h3>Error Loading Data</h3>
+                <p>{{ error }}</p>
+                <button mat-raised-button color="primary" (click)="loadHistoricalData()">
+                  Retry
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Chart -->
+          <mat-card
+            class="dashboard-card"
+            *ngIf="!isLoading && !error && chartData.length > 0"
+          >
+            <mat-card-content>
+              <!-- Chart container now referenced by ViewChild -->
+              <div #chartContainer class="chart-container"></div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- No data fallback -->
+          <mat-card
+            class="dashboard-card"
+            *ngIf="!isLoading && !error && chartData.length === 0"
+          >
+            <mat-card-content>
+              <div class="no-data-content">
+                <mat-icon>trending_up</mat-icon>
+                <h3>No Historical Data Available</h3>
+                <p>No historical stock data available for the selected filters.</p>
+                <button mat-raised-button color="primary" (click)="loadHistoricalData()">
+                  Load All Data
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

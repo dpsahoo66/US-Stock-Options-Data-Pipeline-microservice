@@ -1,60 +1,163 @@
-// $primary-bg: #1A1F36;
-// $accent-color: #6B48FF;
-// $text-color: #D3D8E8;
-// $border-color: #4A5D7A;
-// $secondary-accent: #4ECDC4;
-// $neutral-highlight: #A3BFFA;
-// $bg-accent: #2A3550;
-
-// .dashboard-container {
-//   margin-left: 250px; /* Match side-nav width */
-//   margin-top: 60px; /* Match navbar height */
-//   padding: 0;
-//   background-color: $bg-accent;
-//   min-height: calc(100vh - 60px); /* Full height minus navbar */
-//   width: calc(100vw - 250px); /* Full width minus side-nav */
-//   overflow: hidden;
-
-//   .chart-container {
-//     width: 100%;
-//     height: 400px;
-//     background-color: $primary-bg;
-//     border: 1px solid $border-color;
-//     border-radius: 0;
-//     padding: 0;
-//     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-//     margin: 0;
-
-//     #stock {
-//       height: 100%;
-//       width: 100%;
-//       padding: 0;
-//       margin: 0;
-
-//       .highcharts-container {
-//         height: 100% !important;
-//         width: 100% !important;
-//         padding: 0 !important;
-//         margin: 0 !important;
-//       }
-//     }
-//   }
-// }
-
 .dashboard-wrapper {
-  margin: 0em 0em 0em 9em;
-  // padding: 20px;
+  padding: 20px;
+}
 
-  .dashboard-card {
-    background-color: #1c1c1c; // Dark card background
-    height: min(62em, 82vh);
+.stock-selector-card {
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dashboard-card {
+  min-height: 400px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.chart-container {
+  width: 100%;
+  height: 400px;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  
+  mat-spinner {
+    margin-bottom: 20px;
+  }
+  
+  p {
     color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+    font-size: 16px;
   }
+}
 
-  .chart-container {
-    padding: 1em 1em 1em 1em;
-    height: min(50em, 75vh);
+.error-card {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  text-align: center;
+  
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
   }
+  
+  h3 {
+    color: #fff;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 24px;
+    max-width: 400px;
+  }
+}
+
+.no-data-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  text-align: center;
+  
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  h3 {
+    color: #fff;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+mat-form-field {
+  width: 200px;
+  
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+    
+    .mat-mdc-form-field-label {
+      color: rgba(255, 255, 255, 0.9) !important;
+      font-weight: 500;
+    }
+    
+    .mat-mdc-select-value {
+      color: #fff;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    .mat-mdc-select-arrow {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__trailing,
+    .mdc-notched-outline__notch {
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .mdc-notched-outline--focused .mdc-notched-outline__leading,
+    .mdc-notched-outline--focused .mdc-notched-outline__trailing,
+    .mdc-notched-outline--focused .mdc-notched-outline__notch {
+      border-color: #ffbf00;
+      border-width: 2px;
+    }
+
+    .mat-mdc-select-panel {
+      background: rgba(26, 26, 26, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .mat-mdc-option {
+      color: #fff;
+      
+      &:hover {
+        background: rgba(255, 191, 0, 0.1);
+      }
+      
+      &.mat-mdc-option-active {
+        background: rgba(255, 191, 0, 0.2);
+        color: #ffbf00;
+      }
+    }
+  }
+}
+
+.row {
+  margin: 0;
+}
+
+[class*="col-"] {
+  padding: 0;
 }

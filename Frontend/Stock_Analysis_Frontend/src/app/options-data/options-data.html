@@ -1,1 +1,311 @@
-<p>options-data works!</p>
+<div class="options-data-wrapper">
+  <div class="row">
+    <div class="col-12">
+      <mat-card class="data-card">
+        <mat-card-header>
+          <mat-card-title>Options Data</mat-card-title>
+          <mat-card-subtitle>View and analyze put and call options data</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <!-- Filters and Search -->
+          <div class="filters-section" *ngIf="!isLoading">
+            <div class="filter-row">
+              <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Search options</mat-label>
+                <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" 
+                       placeholder="Enter stock symbol, contract symbol, or expiration date...">
+                <mat-icon matSuffix></mat-icon>
+              </mat-form-field>
+              
+              <button mat-raised-button color="primary" (click)="searchSpecificOptions()" 
+                      [disabled]="!searchTerm.trim()">
+                <mat-icon></mat-icon>
+                Search API
+              </button>
+              
+              <button mat-raised-button color="accent" (click)="exportToCSV('put')" 
+                      [disabled]="putOptionsDataSource.filteredData.length === 0"
+                      *ngIf="selectedTab === 0">
+                <mat-icon></mat-icon>
+                Export Put Options
+              </button>
+              
+              <button mat-raised-button color="accent" (click)="exportToCSV('call')" 
+                      [disabled]="callOptionsDataSource.filteredData.length === 0"
+                      *ngIf="selectedTab === 1">
+                <mat-icon></mat-icon>
+                Export Call Options
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-content" *ngIf="isLoading">
+            <mat-spinner></mat-spinner>
+            <p>Loading options data...</p>
+          </div>
+
+          <!-- Error State -->
+          <div class="error-content" *ngIf="error && !isLoading">
+            <mat-icon color="warn">error</mat-icon>
+            <h3>Error Loading Data</h3>
+            <p>{{ error }}</p>
+            <button mat-raised-button color="primary" (click)="loadOptionsData()">
+              Retry
+            </button>
+          </div>
+
+          <!-- Options Data Tabs -->
+          <mat-tab-group *ngIf="!isLoading && !error" (selectedTabChange)="onTabChange($event.index)" 
+                         class="options-tabs">
+            
+            <!-- Put Options Tab -->
+            <mat-tab label="Put Options ({{ putOptionsCount }})">
+              <div class="tab-content">
+                <div class="table-container">
+                  <table mat-table [dataSource]="putOptionsDataSource" matSort #putSort class="options-table">
+                    
+                    <!-- Contract Symbol Column -->
+                    <ng-container matColumnDef="contractSymbol">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Contract</th>
+                      <td mat-cell *matCellDef="let element">
+                        <span class="contract-symbol">{{ element.contractSymbol }}</span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Stock Name Column -->
+                    <ng-container matColumnDef="StockName">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
+                      <td mat-cell *matCellDef="let element">
+                        <span class="stock-badge">{{ element.StockName }}</span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Expiration Date Column -->
+                    <ng-container matColumnDef="expirationDate">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Expiration</th>
+                      <td mat-cell *matCellDef="let element">{{ element.expirationDate | date:'shortDate' }}</td>
+                    </ng-container>
+
+                    <!-- Strike Column -->
+                    <ng-container matColumnDef="strike">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Strike</th>
+                      <td mat-cell *matCellDef="let element">{{ formatCurrency(element.strike) }}</td>
+                    </ng-container>
+
+                    <!-- Last Price Column -->
+                    <ng-container matColumnDef="lastPrice">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Price</th>
+                      <td mat-cell *matCellDef="let element" class="price-value">
+                        {{ formatCurrency(element.lastPrice) }}
+                      </td>
+                    </ng-container>
+
+                    <!-- Bid Column -->
+                    <ng-container matColumnDef="bid">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Bid</th>
+                      <td mat-cell *matCellDef="let element">{{ formatCurrency(element.bid) }}</td>
+                    </ng-container>
+
+                    <!-- Ask Column -->
+                    <ng-container matColumnDef="ask">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Ask</th>
+                      <td mat-cell *matCellDef="let element">{{ formatCurrency(element.ask) }}</td>
+                    </ng-container>
+
+                    <!-- Change Column -->
+                    <ng-container matColumnDef="change">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Change</th>
+                      <td mat-cell *matCellDef="let element" [class]="getChangeClass(element.change)">
+                        {{ formatCurrency(element.change) }}
+                      </td>
+                    </ng-container>
+
+                    <!-- Percent Change Column -->
+                    <ng-container matColumnDef="percentChange">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>% Change</th>
+                      <td mat-cell *matCellDef="let element" [class]="getChangeClass(element.percentChange)">
+                        {{ formatPercentage(element.percentChange) }}
+                      </td>
+                    </ng-container>
+
+                    <!-- Volume Column -->
+                    <ng-container matColumnDef="volume">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Volume</th>
+                      <td mat-cell *matCellDef="let element">{{ formatNumber(element.volume) }}</td>
+                    </ng-container>
+
+                    <!-- Open Interest Column -->
+                    <ng-container matColumnDef="openInterest">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Open Interest</th>
+                      <td mat-cell *matCellDef="let element">{{ formatNumber(element.openInterest) }}</td>
+                    </ng-container>
+
+                    <!-- Implied Volatility Column -->
+                    <ng-container matColumnDef="impliedVolatility">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>IV</th>
+                      <td mat-cell *matCellDef="let element">
+                        {{ element.impliedVolatility !== null ? (element.impliedVolatility | number:'1.2-4') : 'N/A' }}
+                      </td>
+                    </ng-container>
+
+                    <!-- In The Money Column -->
+                    <ng-container matColumnDef="inTheMoney">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>ITM</th>
+                      <td mat-cell *matCellDef="let element">
+                        <span [class]="element.inTheMoney ? 'itm-yes' : 'itm-no'">
+                          {{ element.inTheMoney ? 'YES' : 'NO' }}
+                        </span>
+                      </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+                  </table>
+
+                  <!-- No Data State for Put Options -->
+                  <div class="no-data-content" *ngIf="putOptionsDataSource.filteredData.length === 0">
+                    <mat-icon>trending_down</mat-icon>
+                    <h3>No Put Options Found</h3>
+                    <p>No put options data matches your current filters.</p>
+                  </div>
+                </div>
+
+                <!-- Put Options Paginator -->
+                <mat-paginator 
+                  #putPaginator
+                  *ngIf="putOptionsDataSource.filteredData.length > 0"
+                  [pageSizeOptions]="[10, 25, 50, 100]" 
+                  showFirstLastButtons>
+                </mat-paginator>
+              </div>
+            </mat-tab>
+
+            <!-- Call Options Tab -->
+            <mat-tab label="Call Options ({{ callOptionsCount }})">
+              <div class="tab-content">
+                <div class="table-container">
+                  <table mat-table [dataSource]="callOptionsDataSource" matSort #callSort class="options-table">
+                    
+                    <!-- Contract Symbol Column -->
+                    <ng-container matColumnDef="contractSymbol">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Contract</th>
+                      <td mat-cell *matCellDef="let element">
+                        <span class="contract-symbol">{{ element.contractSymbol }}</span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Stock Name Column -->
+                    <ng-container matColumnDef="StockName">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
+                      <td mat-cell *matCellDef="let element">
+                        <span class="stock-badge">{{ element.StockName }}</span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Expiration Date Column -->
+                    <ng-container matColumnDef="expirationDate">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Expiration</th>
+                      <td mat-cell *matCellDef="let element">{{ element.expirationDate | date:'shortDate' }}</td>
+                    </ng-container>
+
+                    <!-- Strike Column -->
+                    <ng-container matColumnDef="strike">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Strike</th>
+                      <td mat-cell *matCellDef="let element">{{ formatCurrency(element.strike) }}</td>
+                    </ng-container>
+
+                    <!-- Last Price Column -->
+                    <ng-container matColumnDef="lastPrice">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Price</th>
+                      <td mat-cell *matCellDef="let element" class="price-value">
+                        {{ formatCurrency(element.lastPrice) }}
+                      </td>
+                    </ng-container>
+
+                    <!-- Bid Column -->
+                    <ng-container matColumnDef="bid">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Bid</th>
+                      <td mat-cell *matCellDef="let element">{{ formatCurrency(element.bid) }}</td>
+                    </ng-container>
+
+                    <!-- Ask Column -->
+                    <ng-container matColumnDef="ask">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Ask</th>
+                      <td mat-cell *matCellDef="let element">{{ formatCurrency(element.ask) }}</td>
+                    </ng-container>
+
+                    <!-- Change Column -->
+                    <ng-container matColumnDef="change">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Change</th>
+                      <td mat-cell *matCellDef="let element" [class]="getChangeClass(element.change)">
+                        {{ formatCurrency(element.change) }}
+                      </td>
+                    </ng-container>
+
+                    <!-- Percent Change Column -->
+                    <ng-container matColumnDef="percentChange">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>% Change</th>
+                      <td mat-cell *matCellDef="let element" [class]="getChangeClass(element.percentChange)">
+                        {{ formatPercentage(element.percentChange) }}
+                      </td>
+                    </ng-container>
+
+                    <!-- Volume Column -->
+                    <ng-container matColumnDef="volume">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Volume</th>
+                      <td mat-cell *matCellDef="let element">{{ formatNumber(element.volume) }}</td>
+                    </ng-container>
+
+                    <!-- Open Interest Column -->
+                    <ng-container matColumnDef="openInterest">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>Open Interest</th>
+                      <td mat-cell *matCellDef="let element">{{ formatNumber(element.openInterest) }}</td>
+                    </ng-container>
+
+                    <!-- Implied Volatility Column -->
+                    <ng-container matColumnDef="impliedVolatility">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>IV</th>
+                      <td mat-cell *matCellDef="let element">
+                        {{ element.impliedVolatility !== null ? (element.impliedVolatility | number:'1.2-4') : 'N/A' }}
+                      </td>
+                    </ng-container>
+
+                    <!-- In The Money Column -->
+                    <ng-container matColumnDef="inTheMoney">
+                      <th mat-header-cell *matHeaderCellDef mat-sort-header>ITM</th>
+                      <td mat-cell *matCellDef="let element">
+                        <span [class]="element.inTheMoney ? 'itm-yes' : 'itm-no'">
+                          {{ element.inTheMoney ? 'YES' : 'NO' }}
+                        </span>
+                      </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+                  </table>
+
+                  <!-- No Data State for Call Options -->
+                  <div class="no-data-content" *ngIf="callOptionsDataSource.filteredData.length === 0">
+                    <mat-icon>trending_up</mat-icon>
+                    <h3>No Call Options Found</h3>
+                    <p>No call options data matches your current filters.</p>
+                  </div>
+                </div>
+
+                <!-- Call Options Paginator -->
+                <mat-paginator 
+                  #callPaginator
+                  *ngIf="callOptionsDataSource.filteredData.length > 0"
+                  [pageSizeOptions]="[10, 25, 50, 100]" 
+                  showFirstLastButtons>
+                </mat-paginator>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

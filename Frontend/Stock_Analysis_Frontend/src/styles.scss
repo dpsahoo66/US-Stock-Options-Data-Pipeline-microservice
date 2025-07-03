@@ -1,6 +1,81 @@
 /* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 html, body {
   height: 100%;
   margin: 0;
-  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #0e0e0e 0%, #1a1a1a 50%, #2a2a2a 100%);
+  color: #D9E1FA;
+}
+
+/* Global button styling improvements */
+.mat-mdc-raised-button {
+  border-radius: 6px !important;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  
+  &:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Improve Material Select dropdown styling */
+.mat-mdc-select-panel {
+  background: rgba(26, 26, 26, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.mat-mdc-option {
+  color: #fff !important;
+  
+  &:hover {
+    background: rgba(255, 191, 0, 0.1) !important;
+  }
+  
+  &.mat-mdc-option-active {
+    background: rgba(255, 191, 0, 0.2) !important;
+    color: #ffbf00 !important;
+  }
+}
+
+/* Scrollbar styling for the whole app */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 191, 0, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 191, 0, 0.7);
+}
+
+/* Fix Material Design dark theme issues */
+.mat-mdc-card {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  border-radius: 6px !important;
+}
+
+/* Ensure proper spacing for layout */
+.content-area {
+  padding-top: 60px !important; /* Account for fixed navbar */
 }

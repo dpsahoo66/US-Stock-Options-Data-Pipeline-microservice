@@ -47,7 +47,7 @@ mat-toolbar {
     outline: none; /* Remove default outline */
 
     &:focus {
-      border-color: $accent-color;
+      border-color: $secondary-accent;
     }
 
     &::placeholder {
@@ -56,17 +56,23 @@ mat-toolbar {
   }
 
   button {
-    background-color: 'white';
+    background-color: $secondary-accent;
     color: $primary-bg;
     border: none;
     padding: 8px 16px;
     border-radius: 4px;
     font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
 
     &:hover {
-      background-color: darken($accent-color, 10%);
+      background-color: #6ed6d1;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 }

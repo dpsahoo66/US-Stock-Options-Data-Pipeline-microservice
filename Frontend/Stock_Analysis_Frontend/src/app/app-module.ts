@@ -1,5 +1,6 @@
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
 import { Layout } from './layout/layout';
@@ -13,8 +14,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { HistoricalData } from './historical-data/historical-data';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { OptionsData } from './options-data/options-data';
 
 @NgModule({
@@ -29,6 +37,7 @@ import { OptionsData } from './options-data/options-data';
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
     AppRoutingModule,
     MatToolbarModule,
     MatSidenavModule,
@@ -37,7 +46,15 @@ import { OptionsData } from './options-data/options-data';
     MatListModule,
     MatInputModule,
     MatButtonModule,
-    FormsModule
+    MatTableModule,
+    MatProgressSpinnerModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
+    ReactiveFormsModule
   ],
   providers: [
     provideBrowserGlobalErrorListeners()

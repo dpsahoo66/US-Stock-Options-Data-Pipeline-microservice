@@ -1,459 +1,159 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ElementRef,
+  ViewChild,
+} from '@angular/core';
 import * as Highcharts from 'highcharts/highstock';
+
+import { StockDataService } from '../services/stock-data.service';
+import { StockData } from '../models/stock-data.interface';
 
 @Component({
   selector: 'app-dashboard',
+  /* still part of an NgModule, so standalone stays false */
   standalone: false,
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss',
+  styleUrls: ['./dashboard.scss'],
 })
-export class Dashboard {
-  data: any = [
-    [1410912000000, 457.33],
-    [1410998400000, 424.44],
-    [1411084800000, 394.8],
-    [1411171200000, 408.9],
-    [1411257600000, 398.82],
-    [1411344000000, 402.15],
-    [1411430400000, 435.79],
-    [1411516800000, 423.2],
-    [1411603200000, 411.57],
-    [1411689600000, 404.42],
-    [1411776000000, 399.52],
-    [1411862400000, 377.18],
-    [1411948800000, 375.47],
-    [1412035200000, 386.94],
-    [1412121600000, 383.61],
-    [1412208000000, 375.07],
-    [1412294400000, 359.51],
-    [1412380800000, 328.87],
-    [1412467200000, 320.51],
-    [1412553600000, 330.08],
-    [1412640000000, 336.19],
-    [1412726400000, 352.94],
-    [1412812800000, 365.03],
-    [1412899200000, 361.56],
-    [1412985600000, 362.3],
-    [1413072000000, 378.55],
-    [1413158400000, 390.41],
-    [1413244800000, 400.87],
-    [1413331200000, 394.77],
-    [1413417600000, 382.56],
-    [1413504000000, 383.76],
-    [1413590400000, 391.44],
-    [1413676800000, 389.55],
-    [1413763200000, 382.85],
-    [1413849600000, 386.48],
-    [1413936000000, 383.16],
-    [1414022400000, 358.42],
-    [1414108800000, 358.35],
-    [1414195200000, 347.27],
-    [1414281600000, 354.7],
-    [1414368000000, 352.99],
-    [1414454400000, 357.62],
-    [1414540800000, 335.59],
-    [1414627200000, 345.3],
-    [1414713600000, 338.32],
-    [1414800000000, 325.75],
-    [1414886400000, 325.89],
-    [1414972800000, 327.55],
-    [1415059200000, 330.49],
-    [1415145600000, 339.49],
-    [1415232000000, 349.29],
-    [1415318400000, 342.42],
-    [1415404800000, 345.49],
-    [1415491200000, 363.26],
-    [1415577600000, 366.92],
-    [1415664000000, 367.7],
-    [1415750400000, 423.56],
-    [1415836800000, 420.73],
-    [1415923200000, 397.82],
-    [1416009600000, 376.13],
-    [1416096000000, 387.88],
-    [1416182400000, 387.41],
-    [1416268800000, 375.2],
-    [1416355200000, 380.55],
-    [1416441600000, 357.84],
-    [1416528000000, 350.85],
-    [1416614400000, 352.92],
-    [1416700800000, 367.57],
-    [1416787200000, 376.9],
-    [1416873600000, 375.35],
-    [1416960000000, 368.37],
-    [1417046400000, 369.67],
-    [1417132800000, 376.45],
-    [1417219200000, 375.49],
-    [1417305600000, 378.05],
-    [1417392000000, 379.24],
-    [1417478400000, 381.32],
-    [1417564800000, 375.01],
-    [1417651200000, 369.6],
-    [1417737600000, 376.85],
-    [1417824000000, 374.79],
-    [1417910400000, 375.1],
-    [1417996800000, 361.91],
-    [1418083200000, 352.22],
-    [1418169600000, 346.36],
-    [1418256000000, 350.51],
-    [1418342400000, 352.54],
-    [1418428800000, 347.38],
-    [1418515200000, 351.63],
-    [1418601600000, 345.35],
-    [1418688000000, 327.06],
-    [1418774400000, 319.78],
-    [1418860800000, 311.4],
-    [1418947200000, 317.84],
-    [1419033600000, 329.96],
-    [1419120000000, 320.84],
-    [1419206400000, 331.89],
-    [1419292800000, 334.57],
-    [1419379200000, 322.53],
-    [1419465600000, 319.01],
-    [1419552000000, 327.92],
-    [1419638400000, 315.86],
-    [1419724800000, 317.24],
-    [1419811200000, 312.67],
-    [1419897600000, 310.74],
-    [1419984000000, 320.19],
-    [1420070400000, 314.25],
-    [1420156800000, 315.03],
-    [1420243200000, 281.08],
-    [1420329600000, 264.2],
-    [1420416000000, 274.47],
-    [1420502400000, 286.19],
-    [1420588800000, 294.34],
-    [1420675200000, 283.35],
-    [1420761600000, 290.41],
-    [1420848000000, 274.8],
-    [1420934400000, 265.66],
-    [1421020800000, 267.8],
-    [1421107200000, 225.86],
-    [1421193600000, 178.1],
-    [1421280000000, 209.84],
-    [1421366400000, 208.1],
-    [1421452800000, 199.26],
-    [1421539200000, 210.34],
-    [1421625600000, 214.86],
-    [1421712000000, 211.32],
-    [1421798400000, 226.9],
-    [1421884800000, 233.41],
-    [1421971200000, 232.88],
-    [1422057600000, 247.85],
-    [1422144000000, 253.72],
-    [1422230400000, 273.47],
-    [1422316800000, 263.48],
-    [1422403200000, 233.91],
-    [1422489600000, 233.51],
-    [1422576000000, 226.43],
-    [1422662400000, 217.46],
-    [1422748800000, 226.97],
-    [1422835200000, 238.23],
-    [1422921600000, 227.27],
-    [1423008000000, 226.85],
-    [1423094400000, 217.11],
-    [1423180800000, 222.27],
-    [1423267200000, 227.75],
-    [1423353600000, 223.41],
-    [1423440000000, 220.11],
-    [1423526400000, 219.84],
-    [1423612800000, 219.18],
-    [1423699200000, 221.76],
-    [1423785600000, 235.43],
-    [1423872000000, 257.32],
-    [1423958400000, 234.82],
-    [1424044800000, 233.84],
-    [1424131200000, 243.61],
-    [1424217600000, 236.33],
-    [1424304000000, 240.28],
-    [1424390400000, 243.78],
-    [1424476800000, 244.53],
-    [1424563200000, 235.98],
-    [1424649600000, 238.89],
-    [1424736000000, 238.74],
-    [1424822400000, 237.47],
-    [1424908800000, 236.43],
-    [1424995200000, 253.83],
-    [1425081600000, 254.26],
-    [1425168000000, 260.2],
-    [1425254400000, 275.67],
-    [1425340800000, 281.7],
-    [1425427200000, 273.09],
-    [1425513600000, 276.18],
-    [1425600000000, 272.72],
-    [1425686400000, 276.26],
-    [1425772800000, 274.35],
-    [1425859200000, 289.61],
-    [1425945600000, 291.76],
-    [1426032000000, 296.38],
-    [1426118400000, 294.35],
-    [1426204800000, 285.34],
-    [1426291200000, 281.89],
-    [1426377600000, 286.39],
-    [1426464000000, 290.59],
-    [1426550400000, 285.51],
-    [1426636800000, 256.3],
-    [1426723200000, 260.93],
-    [1426809600000, 261.75],
-    [1426896000000, 260.02],
-    [1426982400000, 267.96],
-    [1427068800000, 266.74],
-    [1427155200000, 245.6],
-    [1427241600000, 246.2],
-    [1427328000000, 248.53],
-    [1427414400000, 247.03],
-    [1427500800000, 252.8],
-    [1427587200000, 242.71],
-    [1427673600000, 247.53],
-    [1427760000000, 244.22],
-    [1427846400000, 247.27],
-    [1427932800000, 253.01],
-    [1428019200000, 254.32],
-    [1428105600000, 253.7],
-    [1428192000000, 260.6],
-    [1428278400000, 255.49],
-    [1428364800000, 253.18],
-    [1428451200000, 245.02],
-    [1428537600000, 243.68],
-    [1428624000000, 236.07],
-    [1428710400000, 236.55],
-    [1428796800000, 236.15],
-    [1428883200000, 224.59],
-    [1428969600000, 219.16],
-    [1429056000000, 223.83],
-    [1429142400000, 228.57],
-    [1429228800000, 222.88],
-    [1429315200000, 223.36],
-    [1429401600000, 222.6],
-    [1429488000000, 224.63],
-    [1429574400000, 235.27],
-    [1429660800000, 234.18],
-    [1429747200000, 236.46],
-    [1429833600000, 231.27],
-    [1429920000000, 226.39],
-    [1430006400000, 219.43],
-    [1430092800000, 229.29],
-    [1430179200000, 225.85],
-    [1430265600000, 225.81],
-    [1430352000000, 236.15],
-    [1430438400000, 232.08],
-    [1430524800000, 234.93],
-    [1430611200000, 240.36],
-    [1430697600000, 239.02],
-    [1430784000000, 236.12],
-    [1430870400000, 229.78],
-    [1430956800000, 237.33],
-    [1431043200000, 243.86],
-    [1431129600000, 241.83],
-  ];
+export class Dashboard implements OnInit, AfterViewInit {
+  /* ---------------- view state ---------------- */
+  stockData: StockData[] = [];
+  chartData: [number, number][] = [];
 
+  isLoading = false;
+  error: string | null = null;
+
+  selectedStock = 'MMM';          // default symbol
+  availableStocks: string[] = [];
+
+  /* -------------- Highcharts refs -------------- */
+  @ViewChild('chartContainer', { static: false })
+  chartEl!: ElementRef<HTMLDivElement>;
+
+  private chart?: Highcharts.Chart;
+
+  constructor(private stockDataService: StockDataService) {}
+
+  /* ---------- lifecycle hooks ---------- */
   ngOnInit(): void {
-    // this.renderSplineChart(); // Called when the component loads
+    this.loadStockData();
+  }
+
+  /** Called once Angular has rendered the template */
+  ngAfterViewInit(): void {
+    if (this.chartData.length) {
+      this.renderStockChart();
+    }
+  }
+
+  /* ---------- data loading ---------- */
+  loadStockData(): void {
+    this.isLoading = true;
+    this.error = null;
+
+    this.stockDataService.getAllStockData().subscribe({
+      next: (response) => {
+        if (response.status === 'success') {
+          this.stockData = response.data.stock_data;
+          this.extractAvailableStocks();
+          this.updateChartData();
+          /* element now exists if user stayed on dashboard tab */
+          if (this.chartEl) {
+            this.renderStockChart();
+          }
+        } else {
+          this.error = response.message || 'Failed to load stock data';
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading stock data:', err);
+        this.error =
+          'Failed to connect to the API. Please check if the backend is running.';
+        this.isLoading = false;
+      },
+    });
+  }
+
+  extractAvailableStocks(): void {
+    const uniqueStocks = [...new Set(this.stockData.map((i) => i.symbol))];
+    this.availableStocks = uniqueStocks.sort();
+  }
+
+  /* ---------- UI handlers ---------- */
+  onStockChange(selectedStock: string): void {
+    this.selectedStock = selectedStock;
+    this.updateChartData();
     this.renderStockChart();
   }
 
-  renderSplineChart(): void {
-    Highcharts.chart('stock', {
-      chart: {
-        type: 'areaspline',
-        backgroundColor: 'transparent',
-      },
-      title: {
-        text: 'Stock Price Trends',
-      },
-      xAxis: {
-        categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-      },
-      yAxis: {
-        title: {
-          text: 'Price ($)',
-        },
-      },
-      series: [
-        {
-          name: 'AAPL',
-          color: '#56CA00',
-          type: 'spline',
-          data: [150, 155, 160, 158, 165],
-        },
-      ],
-    } as any);
+  /* ---------- helpers ---------- */
+  updateChartData(): void {
+    const filtered = this.stockData
+      .filter((i) => i.symbol === this.selectedStock)
+      .sort(
+        (a, b) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+
+    this.chartData = filtered.map((i) => [
+      new Date(i.date).getTime(),
+      i.close ?? 0,
+    ]);
   }
 
   renderStockChart(): void {
-    Highcharts.stockChart('container', {
+    /* guard against empty data or missing element */
+    if (!this.chartData.length || !this.chartEl) {
+      return;
+    }
+
+    /* destroy old chart when switching symbols */
+    if (this.chart) {
+      this.chart.destroy();
+    }
+
+    this.chart = Highcharts.stockChart(this.chartEl.nativeElement, {
       chart: {
         type: 'areaspline',
         backgroundColor: 'transparent',
       },
       title: {
-        text: 'Stock Analysis',
-            style: {
-                color: '#fff' // Set y-axis labels color to black
-            }
-      },
-      navigator: {
-        enabled: false // Disable the navigator
-    },
-    scrollbar: {
-        enabled: false // Disable the scrollbar
-    },
-    credits: {
-      enabled: false
-    },
-    yAxis:{
-      opposite: false,
-      labels: {
-            style: {
-                color: '#fff' // Set y-axis labels color to black
-            }
-        },
-    },
-      xAxis: {
-        labels: {
-            style: {
-                color: '#fff' // Set y-axis labels color to black
-            }
-        },
+        text: `${this.selectedStock} Stock Analysis`,
+        style: { color: '#fff' },
       },
       rangeSelector: {
         selected: 3,
         buttons: [
-          {
-            type: 'month',
-            count: 3,
-            text: '3m',
-            title: 'View 3 months',
-          },
-          {
-            type: 'month',
-            count: 6,
-            text: '6m',
-            title: 'View 6 months',
-          },
-          {
-            type: 'ytd',
-            text: 'YTD',
-            title: 'View year to date',
-          },
-          {
-            type: 'year',
-            count: 1,
-            text: '1y',
-            title: 'View 1 year',
-          },
-          {
-            type: 'all',
-            text: 'All',
-            title: 'View all',
-          },
+          { type: 'month',  count: 1, text: '1m', title: 'View 1 month' },
+          { type: 'month',  count: 3, text: '3m', title: 'View 3 months' },
+          { type: 'month',  count: 6, text: '6m', title: 'View 6 months' },
+          { type: 'ytd',                text: 'YTD', title: 'View year to date' },
+          { type: 'year',   count: 1, text: '1y', title: 'View 1 year' },
+          { type: 'all',                text: 'All', title: 'View all' },
         ],
       },
+      navigator : { enabled: false },
+      scrollbar : { enabled: false },
+      credits   : { enabled: false },
+      yAxis: {
+        opposite: false,
+        title: { text: 'Price ($)', style: { color: '#fff' } },
+        labels: { style: { color: '#fff' } },
+      },
+      xAxis: { labels: { style: { color: '#fff' } } },
       series: [
         {
-          name: 'Bitcoin Price',
-          fillOpacity: 0.2, 
+          type : 'areaspline',
+          name : `${this.selectedStock} Price`,
+          data : this.chartData,
+          fillOpacity: 0.2,
           color: '#ffbf00',
-          data: this.data,
-          id: 'dataseries',
-          tooltip: {
-            valueDecimals: 2,
-            valuePrefix: '$',
-          }
-        }
+          tooltip: { valueDecimals: 2, valuePrefix: '$' },
+        },
       ],
-    } as any);
+    } as Highcharts.Options);
   }
 }
-
-// import { Component } from '@angular/core';
-// // Import Highcharts base
-// import * as Highcharts from 'highcharts';
-// // Import Highstock
-// import HighchartsStock from 'highcharts/highstock';
-// // Import exporting module (optional)
-// import HC_exporting from 'highcharts/modules/exporting';
-
-// // Initialize exporting module
-// HC_exporting(Highcharts);
-
-// // Extend Highcharts with Highstock
-// HighchartsStock(Highcharts);
-
-// @Component({
-//   selector: 'app-dashboard',
-//   standalone: false,
-//   templateUrl: './dashboard.html',
-//   styleUrl: './dashboard.scss'
-// })
-// export class Dashboard {
-//   ngOnInit(): void {
-//     this.renderStockChart();
-//   }
-
-//   renderStockChart(): void {
-//     // Use the extended Highcharts object
-//     Highcharts.stockChart('container', {
-//       rangeSelector: {
-//         buttons: [{
-//           type: 'day',
-//           count: 1,
-//           text: '1d'
-//         }, {
-//           type: 'day',
-//           count: 5,
-//           text: '5d'
-//         }, {
-//           type: 'month',
-//           count: 1,
-//           text: '1m'
-//         }, {
-//           type: 'month',
-//           count: 6,
-//           text: '6m'
-//         }, {
-//           type: 'year',
-//           count: 1,
-//           text: 'YTD'
-//         }, {
-//           type: 'year',
-//           count: 1,
-//           text: '1y'
-//         }, {
-//           type: 'year',
-//           count: 5,
-//           text: '5y'
-//         }, {
-//           type: 'all',
-//           text: 'All'
-//         }],
-//         selected: 0
-//       },
-//       title: {
-//         text: 'Stock Price Trend'
-//       },
-//       series: [{
-//         name: 'AAPL Stock Price',
-//         data: [
-//           [Date.UTC(2023, 0, 1), 150],
-//           [Date.UTC(2023, 0, 2), 155],
-//           [Date.UTC(2023, 0, 3), 160],
-//           [Date.UTC(2023, 0, 4), 158],
-//           [Date.UTC(2023, 0, 5), 162],
-//           [Date.UTC(2023, 0, 6), 165],
-//           [Date.UTC(2023, 0, 7), 170],
-//           [Date.UTC(2023, 0, 8), 168],
-//           [Date.UTC(2023, 0, 9), 172],
-//           [Date.UTC(2023, 0, 10), 175],
-//           [Date.UTC(2023, 0, 11), 180],
-//           [Date.UTC(2023, 0, 12), 178],
-//           [Date.UTC(2023, 0, 13), 182],
-//           [Date.UTC(2023, 0, 14), 185],
-//           [Date.UTC(2023, 0, 15), 190]
-//         ],
-//         tooltip: {
-//           valueDecimals: 2
-//         }
-//       }]
-//     });
-//   }
-// }

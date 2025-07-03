@@ -1,10 +1,76 @@
 <div class="dashboard-wrapper">
   <div class="row">
     <div class="col-xxl-12 col-xl-12 col-lg-12">
-      <mat-card class="dashboard-card">
+      <!-- Stock selector -->
+      <mat-card
+        class="stock-selector-card"
+        *ngIf="!isLoading && availableStocks.length > 0"
+      >
         <mat-card-content>
-          <!-- <div id="stock" class="chart-container"></div> -->
-          <div id="container" class="chart-container"></div>
+          <mat-form-field appearance="outline">
+            <mat-label>Select Stock</mat-label>
+            <mat-select
+              [(value)]="selectedStock"
+              (selectionChange)="onStockChange($event.value)"
+            >
+              <mat-option
+                *ngFor="let stock of availableStocks"
+                [value]="stock"
+              >
+                {{ stock }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Loading -->
+      <mat-card class="dashboard-card" *ngIf="isLoading">
+        <mat-card-content class="loading-content">
+          <mat-spinner></mat-spinner>
+          <p>Loading stock data…</p>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Error -->
+      <mat-card
+        class="dashboard-card error-card"
+        *ngIf="error && !isLoading"
+      >
+        <mat-card-content>
+          <div class="error-content">
+            <mat-icon color="warn">error</mat-icon>
+            <h3>Error Loading Data</h3>
+            <p>{{ error }}</p>
+            <button mat-raised-button color="primary" (click)="loadStockData()">
+              Retry
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Chart -->
+      <mat-card
+        class="dashboard-card"
+        *ngIf="!isLoading && !error && chartData.length > 0"
+      >
+        <mat-card-content>
+          <!-- Chart container now referenced by ViewChild -->
+          <div #chartContainer class="chart-container"></div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- No data fallback -->
+      <mat-card
+        class="dashboard-card"
+        *ngIf="!isLoading && !error && chartData.length === 0"
+      >
+        <mat-card-content>
+          <div class="no-data-content">
+            <mat-icon>trending_up</mat-icon>
+            <h3>No Data Available</h3>
+            <p>No stock data available for the selected symbol.</p>
+          </div>
         </mat-card-content>
       </mat-card>
     </div>

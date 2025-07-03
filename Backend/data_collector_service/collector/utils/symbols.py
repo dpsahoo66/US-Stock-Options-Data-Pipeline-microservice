@@ -1,3 +1,36 @@
-# symbols = ['MMM', 'AOS', 'ABT', 'ABBV', 'ACN', 'ADBE', 'AMD', 'AES', 'AFL', 'A', 'APD', 'ABNB', 'AKAM', 'ALB', 'ARE', 'ALGN', 'ALLE', 'LNT', 'ALL', 'GOOGL', 'GOOG', 'MO', 'AMZN', 'AMCR', 'AEE', 'AEP', 'AXP', 'AIG', 'AMT', 'AWK', 'AMP', 'AME', 'AMGN', 'APH', 'ADI', 'ANSS', 'AON', 'APA', 'APO', 'AAPL', 'AMAT', 'APTV', 'ACGL', 'ADM', 'ANET', 'AJG', 'AIZ', 'T', 'ATO', 'ADSK', 'ADP', 'AZO', 'AVB', 'AVY', 'AXON', 'BKR', 'BALL', 'BAC', 'BAX', 'BDX', 'BRK.B', 'BBY', 'TECH', 'BIIB', 'BLK', 'BX', 'BK', 'BA', 'BKNG', 'BSX', 'BMY', 'AVGO', 'BR', 'BRO', 'BF.B', 'BLDR', 'BG', 'BXP', 'CHRW', 'CDNS', 'CZR', 'CPT', 'CPB', 'COF', 'CAH', 'KMX', 'CCL', 'CARR', 'CAT', 'CBOE', 'CBRE', 'CDW', 'COR', 'CNC', 'CNP', 'CF', 'CRL', 'SCHW', 'CHTR', 'CVX', 'CMG', 'CB', 'CHD', 'CI', 'CINF', 'CTAS', 'CSCO', 'C', 'CFG', 'CLX', 'CME', 'CMS', 'KO', 'CTSH', 'COIN', 'CL', 'CMCSA', 'CAG', 'COP', 'ED', 'STZ', 'CEG', 'COO', 'CPRT', 'GLW', 'CPAY', 'CTVA', 'CSGP', 'COST', 'CTRA', 'CRWD', 'CCI', 'CSX', 'CMI', 'CVS', 'DHR', 'DRI', 'DVA', 'DAY', 'DECK', 'DE', 'DELL', 'DAL', 'DVN', 'DXCM', 'FANG', 'DLR', 'DG', 'DLTR', 'D', 'DPZ', 'DASH', 'DOV', 'DOW', 'DHI', 'DTE', 'DUK', 'DD', 'EMN', 'ETN', 'EBAY', 'ECL', 'EIX', 'EW', 'EA', 'ELV', 'EMR', 'ENPH', 'ETR', 'EOG', 'EPAM', 'EQT', 'EFX', 'EQIX', 'EQR', 'ERIE', 'ESS', 'EL', 'EG', 'EVRG', 'ES', 'EXC', 'EXE', 'EXPE', 'EXPD', 'EXR', 'XOM', 'FFIV', 'FDS', 'FICO', 'FAST', 'FRT', 'FDX', 'FIS', 'FITB', 'FSLR', 'FE', 'FI', 'F', 'FTNT', 'FTV', 'FOXA', 'FOX', 'BEN', 'FCX', 'GRMN', 'IT', 'GE', 'GEHC', 'GEV', 'GEN', 'GNRC', 'GD', 'GIS', 'GM', 'GPC', 'GILD', 'GPN', 'GL', 'GDDY', 'GS', 'HAL', 'HIG', 'HAS', 'HCA', 'DOC', 'HSIC', 'HSY', 'HES', 'HPE', 'HLT', 'HOLX', 'HD', 'HON', 'HRL', 'HST', 'HWM', 'HPQ', 'HUBB', 'HUM', 'HBAN', 'HII', 'IBM', 'IEX', 'IDXX', 'ITW', 'INCY', 'IR', 'PODD', 'INTC', 'ICE', 'IFF', 'IP', 'IPG', 'INTU', 'ISRG', 'IVZ', 'INVH', 'IQV', 'IRM', 'JBHT', 'JBL', 'JKHY', 'J', 'JNJ', 'JCI', 'JPM', 'JNPR', 'K', 'KVUE', 'KDP', 'KEY', 'KEYS', 'KMB', 'KIM', 'KMI', 'KKR', 'KLAC', 'KHC', 'KR', 'LHX', 'LH', 'LRCX', 'LW', 'LVS', 'LDOS', 'LEN', 'LII', 'LLY', 'LIN', 'LYV', 'LKQ', 'LMT', 'L', 'LOW', 'LULU', 'LYB', 'MTB', 'MPC', 'MKTX', 'MAR', 'MMC', 'MLM', 'MAS', 'MA', 'MTCH', 'MKC', 'MCD', 'MCK', 'MDT', 'MRK', 'META', 'MET', 'MTD', 'MGM', 'MCHP', 'MU', 'MSFT', 'MAA', 'MRNA', 'MHK', 'MOH', 'TAP', 'MDLZ', 'MPWR', 'MNST', 'MCO', 'MS', 'MOS', 'MSI', 'MSCI', 'NDAQ', 'NTAP', 'NFLX', 'NEM', 'NWSA', 'NWS', 'NEE', 'NKE', 'NI', 'NDSN', 'NSC', 'NTRS', 'NOC', 'NCLH', 'NRG', 'NUE', 'NVDA', 'NVR', 'NXPI', 'ORLY', 'OXY', 'ODFL', 'OMC', 'ON', 'OKE', 'ORCL', 'OTIS', 'PCAR', 'PKG', 'PLTR', 'PANW', 'PARA', 'PH', 'PAYX', 'PAYC', 'PYPL', 'PNR', 'PEP', 'PFE', 'PCG', 'PM', 'PSX', 'PNW', 'PNC', 'POOL', 'PPG', 'PPL', 'PFG', 'PG', 'PGR', 'PLD', 'PRU', 'PEG', 'PTC', 'PSA', 'PHM', 'PWR', 'QCOM', 'DGX', 'RL', 'RJF', 'RTX', 'O', 'REG', 'REGN', 'RF', 'RSG', 'RMD', 'RVTY', 'ROK', 'ROL', 'ROP', 'ROST', 'RCL', 'SPGI', 'CRM', 'SBAC', 'SLB', 'STX', 'SRE', 'NOW', 'SHW', 'SPG', 'SWKS', 'SJM', 'SW', 'SNA', 'SOLV', 'SO', 'LUV', 'SWK', 'SBUX', 'STT', 'STLD', 'STE', 'SYK', 'SMCI', 'SYF', 'SNPS', 'SYY', 'TMUS', 'TROW', 'TTWO', 'TPR', 'TRGP', 'TGT', 'TEL', 'TDY', 'TER', 'TSLA', 'TXN', 'TPL', 'TXT', 'TMO', 'TJX', 'TKO', 'TSCO', 'TT', 'TDG', 'TRV', 'TRMB', 'TFC', 'TYL', 'TSN', 'USB', 'UBER', 'UDR', 'ULTA', 'UNP', 'UAL', 'UPS', 'URI', 'UNH', 'UHS', 'VLO', 'VTR', 'VLTO', 'VRSN', 'VRSK', 'VZ', 'VRTX', 'VTRS', 'VICI', 'V', 'VST', 'VMC', 'WRB', 'GWW', 'WAB', 'WBA', 'WMT', 'DIS', 'WBD', 'WM', 'WAT', 'WEC', 'WFC', 'WELL', 'WST', 'WDC', 'WY', 'WSM', 'WMB', 'WTW', 'WDAY', 'WYNN', 'XEL', 'XYL', 'YUM', 'ZBRA', 'ZBH', 'ZTS']
+import os
 
-symbols = ['MMM', 'AOS', 'ABT', 'GPN', 'GL', 'GDDY', 'GS', 'HAL']
+# SYMBOLS_SETS = [
+#     ["AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "GOOG", "BRK-B", "TSLA", "JPM", "WMT", "UNH", "V", "MA", "XOM", "LLY", "PG", "HD", "KO", "COST", "ADBE", "BAC", "PEP", "CSCO"],
+#     ["NFLX", "CRM", "ORCL", "INTC", "AMD", "TMO", "MCD", "ABT", "CVX", "DIS", "WFC", "IBM", "QCOM", "CAT", "GS", "AMGN", "DHR", "NKE", "LOW", "INTU", "TXN", "UPS", "CMCSA", "SPGI"],
+#     ["HON", "RTX", "BA", "C", "PFE", "T", "GE", "MMM", "DE", "LMT", "SCHW", "MDT", "CB", "ELV", "BLK", "AXP", "CI", "SBUX", "BMY", "GILD", "SYK", "ADP", "PLD", "MMC"],
+#     ["MO", "COP", "TJX", "NEE", "SO", "DUK", "ZTS", "EOG", "SLB", "VRTX", "REGN", "BSX", "ADI", "KLAC", "PANW", "AMAT", "LRCX", "CSX", "NSC", "ITW", "SHW", "EMR", "AON", "FDX"],
+#     ["ECL", "TGT", "MCK", "USB", "CME", "PNC", "MAR", "PH", "ROP", "MCO", "AFL", "TRV", "PSX", "OXY", "MET", "AIG", "EW", "HUM", "D", "AEP", "STZ", "KMB", "GIS", "YUM"]
+# ]
+
+# SYMBOLS = [
+#     "AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "GOOG", "BRK-B", "TSLA", "JPM", "WMT", "UNH", "V", "MA", "XOM", "LLY", "PG", "HD", "KO", "COST", "ADBE", "BAC", "PEP", "CSCO",
+#     "NFLX", "CRM", "ORCL", "INTC", "AMD", "TMO", "MCD", "ABT", "CVX", "DIS", "WFC", "IBM", "QCOM", "CAT", "GS", "AMGN", "DHR", "NKE", "LOW", "INTU", "TXN", "UPS", "CMCSA", "SPGI",
+#     "HON", "RTX", "BA", "C", "PFE", "T", "GE", "MMM", "DE", "LMT", "SCHW", "MDT", "CB", "ELV", "BLK", "AXP", "CI", "SBUX", "BMY", "GILD", "SYK", "ADP", "PLD", "MMC",
+#     "MO", "COP", "TJX", "NEE", "SO", "DUK", "ZTS", "EOG", "SLB", "VRTX", "REGN", "BSX", "ADI", "KLAC", "PANW", "AMAT", "LRCX", "CSX", "NSC", "ITW", "SHW", "EMR", "AON", "FDX",
+#     "ECL", "TGT", "MCK", "USB", "CME", "PNC", "MAR", "PH", "ROP", "MCO", "AFL", "TRV", "PSX", "OXY", "MET", "AIG", "EW", "HUM", "D", "AEP", "STZ", "KMB", "GIS", "YUM"
+# ]
+
+
+SYMBOLS = ['MMM']
+
+SYMBOL_SETS = [
+    ["MMM"], 
+    ["AAPL"], 
+    ["DELL"], 
+    ["AOS"],
+    ["BRO"]
+    ]
+
+API_KEYS = [
+    os.getenv("TWELVE_DATA_API_1"), 
+    os.getenv("TWELVE_DATA_API_2"), 
+    os.getenv("TWELVE_DATA_API_3"), 
+    os.getenv("TWELVE_DATA_API_4"), 
+    os.getenv("TWELVE_DATA_API_5")
+]

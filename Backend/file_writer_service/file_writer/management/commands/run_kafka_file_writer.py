@@ -1,3 +1,4 @@
+import os
 import json
 import time
 import threading
@@ -69,28 +70,30 @@ class Command(BaseCommand):
             raw_value = msg.value().decode('utf-8')
             logger.info(f"db writer data = {raw_value}")
 
-            try:
-                data = json.loads(raw_value)
-                logger.info(f"Consumed Data from {topic} partition {partition}: {data}")
+            if os.getenv("RUN_DB_HANDLER") == True:
+                try:
+                    data = json.loads(raw_value)
+                    logger.info(f"Consumed Data from {topic} partition {partition}: {data}")
 
-                # Process based on topic
-                if topic == settings.KAFKA_TOPICS['processed-file-daily']:
-                    DailyDataFileHandler(data)
+                    # Process based on topic
+                    if topic == settings.KAFKA_TOPICS['processed-file-daily']:
+                        DailyDataFileHandler(data)
+                        
+                    elif topic == settings.KAFKA_TOPICS['processed-file-15min']:
+                        RealTimeDataFileHandler(data)
                     
-                elif topic == settings.KAFKA_TOPICS['processed-file-15min']:
-                    RealTimeDataFileHandler(data)
-                   
-                elif topic == settings.KAFKA_TOPICS['options']:
-                    OptionsDataFileHandler(data)
-                    
-                elif topic == settings.KAFKA_TOPICS['processed-file-historical']:
-                    HistoricalDataFileHandler(data)
-    
-
-            except json.JSONDecodeError as e:
-                logger.error(f"Invalid JSON in {topic} partition {partition}: {e}")
-            except Exception as e:
-                logger.error(f"Processing error in {topic} partition {partition}: {e}")
+                    elif topic == settings.KAFKA_TOPICS['options']:
+                        OptionsDataFileHandler(data)
+                        
+                    elif topic == settings.KAFKA_TOPICS['processed-file-historical']:
+                        HistoricalDataFileHandler(data)
+        
+                except json.JSONDecodeError as e:
+                    logger.error(f"Invalid JSON in {topic} partition {partition}: {e}")
+                except Exception as e:
+                    logger.error(f"Processing error in {topic} partition {partition}: {e}")
+            else:
+                logger.error(f"Set RUN_DB_HANDLER to True to Execute DB Handler")
 
         consumer.close()
         logger.info(f"Stopped processing for {topic} partition {partition}")

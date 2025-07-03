@@ -1,63 +1,63 @@
-# x-airflow-common:
-#   &airflow-common
-#     build:
-#       context: .
-#       dockerfile: Dockerfile-airflow
-#     environment:
-#       &airflow-common-env
-#       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-#       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
-#       AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
-#       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
-#       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-#       AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
-#       AIRFLOW__CORE__SQL_ALCHEMY_POOL_ENABLED: 'True'
-#       AIRFLOW__CORE__SQL_ALCHEMY_POOL_SIZE: 5
-#       AIRFLOW__CORE__SQL_ALCHEMY_MAX_OVERFLOW: 10
-#       AIRFLOW__CORE__SQL_ALCHEMY_POOL_RECYCLE: 1800
-#     volumes:
-#       - ./dags:/opt/airflow/dags
-#       - ./logs:/opt/airflow/logs
-#       - ./ca.pem:/ca.pem
-#     user: "${AIRFLOW_UID:-50000}:0"
-#     depends_on:
-#       kafka:
-#         condition: service_started
+x-airflow-common:
+  &airflow-common
+    build:
+      context: .
+      dockerfile: Dockerfile-airflow
+    environment:
+      &airflow-common-env
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      AIRFLOW__CORE__SQL_ALCHEMY_POOL_ENABLED: 'True'
+      AIRFLOW__CORE__SQL_ALCHEMY_POOL_SIZE: 5
+      AIRFLOW__CORE__SQL_ALCHEMY_MAX_OVERFLOW: 10
+      AIRFLOW__CORE__SQL_ALCHEMY_POOL_RECYCLE: 1800
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./ca.pem:/ca.pem
+    user: "${AIRFLOW_UID:-50000}:0"
+    depends_on:
+      kafka:
+        condition: service_started
 services:
-  # airflow:
-  #   <<: *airflow-common
-  #   ports:
-  #     - "8080:8080"
-  #   healthcheck:
-  #     test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
-  #     interval: 10s
-  #     timeout: 10s
-  #     retries: 5
-  #   entrypoint: ["/entrypoint.sh"]
-  #   networks:
-  #     - stock_pipeline
+  airflow:
+    <<: *airflow-common
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - stock_pipeline
 
-  # load_balancer:
-  #   image: nginx:latest
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - data_collector
-  #   networks:
-  #     - stock_pipeline
+  load_balancer:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - data_collector
+    networks:
+      - stock_pipeline
 
   data_collector:
     build:
       context: ./data_collector_service
       dockerfile: Dockerfile
     environment:
-      - TWELVE_DATA_API_1=1
-      - TWELVE_DATA_API_2=2
-      - TWELVE_DATA_API_3=3
-      - TWELVE_DATA_API_4=4
-      - TWELVE_DATA_API_5=4
+      - TWELVE_DATA_API_1=<enter_api_key1_here>
+      - TWELVE_DATA_API_2=<enter_api_key2_here>
+      - TWELVE_DATA_API_3=<enter_api_key3_here>
+      - TWELVE_DATA_API_4=<enter_api_key4_here>
+      - TWELVE_DATA_API_5=<enter_api_key5_here>
 
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - KAFKA_TRIGGER_DAILY=fetch-trigger-daily
@@ -125,6 +125,7 @@ services:
       
       - DJANGO_SECRET_KEY=django-insecure-np#5k+3!h2y5he0r=inoh*l5^nw*!t-&e^t-p5zb5ror*^jkyw
       - APP_DEBUG=True
+      - RUN_DB_HANDLER=False
 
     ports:
       - "8002:8002"
@@ -146,6 +147,7 @@ services:
 
       - DJANGO_SECRET_KEY=django-insecure-#o&mlm!y^zv+cs3u0-f)l#vyrj8%_&bvkhnkdad96f(ppr3j#@
       - APP_DEBUG=True
+      - RUN_DB_HANDLER=False
     ports:
       - "8003:8003"
     depends_on:

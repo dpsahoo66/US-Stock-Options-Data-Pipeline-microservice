@@ -1,24 +1,50 @@
-name: Microservices CI Pipeline
+name: CI Pipeline for Microservices
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        service:
+          - airflow_scheduler_service
+          - data_api_service
+          - data_collector_service
+          - data_processor_service
+          - database_writer_service
+          - file_writer_service
+          - monitoring_service
+          - observability_service
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # - name: Build Backend Docker Image
-      #   run: docker build -t backend-service ./Backend
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-      # - name: Build Frontend Docker Image
-      #   run: docker build -t frontend-service ./Frontend
+      - name: Install dependencies
+        run: |
+          cd Backend/${{ matrix.service }}
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      # - name: Dummy Test
-      #   run: echo "Tests will be added later"
+      - name: Check for test files and run tests
+        run: |
+          cd Backend/${{ matrix.service }}
+          if find . -name "test*.py" -o -name "*_test.py" | grep -q .; then
+            echo "Test files found, running tests..."
+            python manage.py test
+          else
+            echo "No test files found, skipping tests for ${{ matrix.service }}"
+          fi
+        env:
+          PYTHONPATH: ${{ github.workspace }}/Backend/${{ matrix.service }}

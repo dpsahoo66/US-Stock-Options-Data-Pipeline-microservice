@@ -1,3 +1,4 @@
+import os
 import json
 import time
 import threading
@@ -62,26 +63,28 @@ class Command(BaseCommand):
                             continue
 
                         # Process based on topic
-                        for attempt in range(max_retries):
-                            try:
-                                if msg.topic() == settings.KAFKA_TOPICS['processed-daily']:
-                                    daily.write_data(data)
-                                elif msg.topic() == settings.KAFKA_TOPICS['processed-15min']:
-                                    influx.write_data(data)
-                                elif msg.topic() == settings.KAFKA_TOPICS['processed-historical']:
-                                    historical.write_data(data)
-                                elif msg.topic() == settings.KAFKA_TOPICS['processed-options']:
-                                    options.write_data(data)
-                                logger.info(f"Successfully processed data for {msg.topic()}")
-                                break
-                            except Exception as e:
-                                logger.error(f"Processing attempt {attempt + 1}/{max_retries} failed for {msg.topic()}: {e}")
-                                if attempt < max_retries - 1:
-                                    time.sleep(retry_delay)
-                                else:
-                                    logger.error(f"All retries failed for {msg.topic()} partition {msg.partition()}")
-                                    # Optionally send to DLQ
-                                    # producer.send('dlq-topic', value=msg.value())
+                        if os.getenv("RUN_DB_HANDLER") == True:
+                            for attempt in range(max_retries):
+                                try:
+                                    if msg.topic() == settings.KAFKA_TOPICS['processed-daily']:
+                                        daily.write_data(data)
+                                    elif msg.topic() == settings.KAFKA_TOPICS['processed-15min']:
+                                        influx.write_data(data)
+                                    elif msg.topic() == settings.KAFKA_TOPICS['processed-historical']:
+                                        historical.write_data(data)
+                                    elif msg.topic() == settings.KAFKA_TOPICS['processed-options']:
+                                        options.write_data(data)
+                                    logger.info(f"Successfully processed data for {msg.topic()}")
+                                    break
+                                except Exception as e:
+                                    logger.error(f"Processing attempt {attempt + 1}/{max_retries} failed for {msg.topic()}: {e}")
+                                    if attempt < max_retries - 1:
+                                        time.sleep(retry_delay)
+                                    else:
+                                        logger.error(f"All retries failed for {msg.topic()} partition {msg.partition()}")
+                            else:
+                                logger.error(f"Set RUN_DB_HANDLER to True to Execute DB Handler")
+
 
                     except json.JSONDecodeError as e:
                         logger.error(f"Invalid JSON in {msg.topic()} partition {msg.partition()}: {e}")

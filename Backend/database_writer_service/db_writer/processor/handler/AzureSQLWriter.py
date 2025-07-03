@@ -1,11 +1,10 @@
 import pyodbc
 import socket
 import time
-import logging
 from django.conf import settings
+from db_writer.utils.logConfig import LogConfig
 
-logger = logging.getLogger(__name__)
-
+logger = LogConfig()
 class AzureSQLWriter:
     def __init__(self):
         self.conn_strings = [

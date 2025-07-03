@@ -1,7 +1,8 @@
 # HistoricalSQLHandler.py
 import pyodbc, os, logging
+from db_writer.utils.logConfig import LogConfig
 
-logger = logging.getLogger(__name__)
+logger = LogConfig()
 
 class HistoricalSQLHandler:
     def __init__(self):

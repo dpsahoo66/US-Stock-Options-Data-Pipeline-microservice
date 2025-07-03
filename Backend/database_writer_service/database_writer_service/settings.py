@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-np#5k+3!h2y5he0r=inoh*l5^nw*!t-&e^t-p5zb5ror*^jkyw"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("APP_DEBUG")
 
 ALLOWED_HOSTS = []
 
@@ -135,10 +135,12 @@ INFLUX_TOKEN = os.getenv("INFLUX_TOKEN")
 INFLUX_ORG = os.getenv("INFLUX_ORG")
 INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
 AZURE_SQL_CONNECTION_STRING = os.getenv("AZURE_SQL_CONNECTION_STRING")
+
 #  Kafka Topics
 KAFKA_TOPICS = {
-    'processed-daily': 'processed-daily-data',
-    'processed-15min': 'processed-15min-data',
-    'processed-options': 'processed-options-data',
-    'processed-historical': 'processed-historical-data'
+    'processed-daily': os.getenv("KAFKA_PROCESSED_DAILY"),
+    'processed-15min': os.getenv("KAFKA_PROCESSED_15MIN"),
+    'processed-options': os.getenv("KAFKA_PROCESSED_OPTIONS"),
+    'processed-historical': os.getenv("KAFKA_PROCESSED_HISTORICAL"),
  }
+

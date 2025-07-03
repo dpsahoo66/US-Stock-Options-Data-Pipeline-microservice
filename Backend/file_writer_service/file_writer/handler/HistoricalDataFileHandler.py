@@ -1,7 +1,7 @@
-import pandas as pd
 import logging
+from file_writer.utils.logConfig import LogConfig
 
-logger = logging.getLogger(__name__)
+logger = LogConfig()
 
 def HistoricalDataFileHandler(data):
 

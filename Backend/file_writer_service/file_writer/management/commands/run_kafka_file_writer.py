@@ -1,77 +1,148 @@
-# file_writer/management/commands/writer.py
-from django.core.management.base import BaseCommand
-from confluent_kafka import KafkaError
-import json, time, logging
+import json
+import time
+import threading
+from confluent_kafka import Consumer, KafkaError, TopicPartition, KafkaException
 
-# from file_writer.handler.DailyDataFileHandler import DailyDataFileHandler
-# from file_writer.handler.RealTimeDataFileHandler import RealTimeDataFileHandler
-# from file_writer.handler.HistoricalDataFileHandler import HistoricalDataFileHandler
-# from file_writer.handler.OptionsDataFileHandler import OptionsDataFileHandler
+from django.conf import settings
+from django.core.management.base import BaseCommand
 
 from file_writer.kafka import kafkaConfig
-from django.conf import settings
+from file_writer.handler.DailyDataFileHandler import DailyDataFileHandler
+from file_writer.handler.RealTimeDataFileHandler import RealTimeDataFileHandler
+from file_writer.handler.HistoricalDataFileHandler import HistoricalDataFileHandler
+from file_writer.handler.OptionsDataFileHandler import OptionsDataFileHandler
+from file_writer.utils.logConfig import LogConfig
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Setup logging
+logger = LogConfig()
 
 class Command(BaseCommand):
-    help = "Kafka to Influx + Azure SQL"
+    help = 'Kafka consumer with multi-threaded partition processing'
+    # influx = InfluxHandler()
+    # daily = DailySQLHandler()
+    # historical = HistoricalSQLHandler()
+    # options = OptionsSQLHandler()
+    def __init__(self):
+        super().__init__()
+        self.running = True  # Flag to control shutdown
+        self.partition_threads = []
+        self.active_partitions = {}  # Track assigned partitions
 
-    def handle(self, *args, **kwargs):
+    def get_partitions(self, consumer, topic, retries=3, delay=5):
+        """Fetch partitions for a topic with retries."""
+        for attempt in range(retries):
+            try:
+                metadata = consumer.list_topics(topic=topic, timeout=10)
+                if topic in metadata.topics:
+                    partitions = metadata.topics[topic].partitions.keys()
+                    logger.info(f"Partitions for topic {topic}: {partitions}")
+                    return partitions
+                else:
+                    logger.warning(f"Topic {topic} not found in metadata")
+            except KafkaException as e:
+                logger.error(f"Failed to fetch metadata for {topic} (attempt {attempt + 1}/{retries}): {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error fetching metadata for {topic} (attempt {attempt + 1}/{retries}): {e}")
+            time.sleep(delay)
+        logger.warning(f"No partitions found for {topic} after {retries} attempts")
+        return []
+
+    def process_partition(self, topic, partition):
+        """Process messages from a specific partition."""
         consumer = kafkaConfig.create_consumer()
-        consumer.subscribe([
-            settings.KAFKA_TOPICS['processed-file-daily'],
-            settings.KAFKA_TOPICS['processed-file-15min'],
-            settings.KAFKA_TOPICS['processed-file-options'],
-            settings.KAFKA_TOPICS['processed-file-historical']
-        ])
+        producer = kafkaConfig.create_producer()
 
-        while True:
+        # Assign consumer to the specific partition
+        consumer.assign([TopicPartition(topic, partition)])
+        logger.info(f"Started processing for {topic} partition {partition}")
+
+        while self.running:
             msg = consumer.poll(1.0)
-
             if msg is None:
                 continue
             if msg.error():
                 if msg.error().code() != KafkaError._PARTITION_EOF:
-                    logger.error(f"Kafka error: {msg.error()}")
+                    logger.error(f"Kafka error on {topic} partition {partition}: {msg.error()}")
                 continue
 
-            logger.info(f"Consumer Polling Message: {msg}")
-            topic = msg.topic()
+            logger.info(f"Consumed message from {topic} partition {partition}: {msg}")
             raw_value = msg.value().decode('utf-8')
+            logger.info(f"db writer data = {raw_value}")
 
             try:
                 data = json.loads(raw_value)
-                logger.info(f"Consumed Data: {data}")
+                logger.info(f"Consumed Data from {topic} partition {partition}: {data}")
+
+                # Process based on topic
+                if topic == settings.KAFKA_TOPICS['processed-file-daily']:
+                    DailyDataFileHandler(data)
+                    
+                elif topic == settings.KAFKA_TOPICS['processed-file-15min']:
+                    RealTimeDataFileHandler(data)
+                   
+                elif topic == settings.KAFKA_TOPICS['options']:
+                    OptionsDataFileHandler(data)
+                    
+                elif topic == settings.KAFKA_TOPICS['processed-file-historical']:
+                    HistoricalDataFileHandler(data)
+    
 
             except json.JSONDecodeError as e:
-                logger.error(f"Invalid JSON: {e}")
-                continue
+                logger.error(f"Invalid JSON in {topic} partition {partition}: {e}")
+            except Exception as e:
+                logger.error(f"Processing error in {topic} partition {partition}: {e}")
 
-            # try:
-            #     if topic == settings.KAFKA_TOPICS['processed-file-daily']:
-                                        
-            #         DailyDataFileHandler(data)
-                    
-            #         logger.info(f"Daily data inserted succesfully ")
+        consumer.close()
+        logger.info(f"Stopped processing for {topic} partition {partition}")
 
-            #     elif topic == settings.KAFKA_TOPICS['processed-file-15min']:
+    def monitor_partitions(self, consumer, topics, check_interval=30):
+        """Periodically check for new partitions and start threads."""
+        while self.running:
+            for topic in topics:
+                partitions = self.get_partitions(consumer, topic)
+                for partition in partitions:
+                    partition_key = (topic, partition)
+                    if partition_key not in self.active_partitions:
+                        logger.info(f"Starting thread for {topic} partition {partition}")
+                        thread = threading.Thread(
+                            target=self.process_partition,
+                            args=(topic, partition)
+                        )
+                        thread.daemon = True
+                        self.partition_threads.append(thread)
+                        self.active_partitions[partition_key] = thread
+                        thread.start()
+            time.sleep(check_interval)
 
-            #         RealTimeDataFileHandler(data)
+    def handle(self, *args, **options):
+        topics = [
+            settings.KAFKA_TOPICS['processed-file-daily'],
+            settings.KAFKA_TOPICS['processed-file-15min'],
+            settings.KAFKA_TOPICS['processed-file-options'],
+            settings.KAFKA_TOPICS['processed-file-historical']
+        ]
+        logger.info(f"Configured Kafka topics: {topics}")
 
-            #         logger.info(f"15 min data inserted succesfully ")
+        consumer = kafkaConfig.create_consumer()
 
-            #     elif topic == settings.KAFKA_TOPICS['processed-file-options']:
+        # Start partition monitoring in a separate thread
+        monitor_thread = threading.Thread(
+            target=self.monitor_partitions,
+            args=(consumer, topics)
+        )
+        monitor_thread.daemon = True
+        monitor_thread.start()
 
-            #         OptionsDataFileHandler(data)
+        logger.info("Kafka processor started. Monitoring for partitions and messages...")
 
-            #         logger.info(f"Option data inserted succesfully ")
-            
-            #     elif topic == settings.KAFKA_TOPICS['processed-file-historical']:
-
-            #         HistoricalDataFileHandler(data)
-
-            #         logger.info(f"historical data inserted succesfully ")
-
-            # except Exception as e:
-            #     logger.error(f"Processing error: {e}")
+        try:
+            while self.running:
+                # Keep main thread alive to let Kafka consumer threads continue running in the background.
+                # When the main thread finishes, the entire program may terminate, even if background threads (daemon threads) are still running.
+                time.sleep(1) 
+        except KeyboardInterrupt:
+            logger.info("Shutting down Kafka processor...")
+            self.running = False
+            for thread in self.partition_threads:
+                thread.join(timeout=5.0)
+            consumer.close()

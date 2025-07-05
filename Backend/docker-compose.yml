@@ -136,25 +136,15 @@ services:
 
   file_writer:
     build:
-      context: ./file_writer_service
+      context: ./file_writer_service    
       dockerfile: Dockerfile
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - KAFKA_PROCESSED_FILE_DAILY=processed-file-daily-data
-      - KAFKA_PROCESSED_FILE_15MIN=processed-file-15min-data
-      - KAFKA_PROCESSED_FILE_OPTIONS=processed-file-options-data
-      - KAFKA_PROCESSED_FILE_HISTORICAL=processed-file-historical-data
-
-      - DJANGO_SECRET_KEY=django-insecure-#o&mlm!y^zv+cs3u0-f)l#vyrj8%_&bvkhnkdad96f(ppr3j#@
-      - APP_DEBUG=True
-      - RUN_DB_HANDLER=False
-    ports:
-      - "8003:8003"
-    depends_on:
-      - kafka
-      - minio
-    networks:
-      - stock_pipeline
+      - AZURE_SQL_CONNECTION_STRING=${AZURE_SQL_CONNECTION_STRING}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET_NAME=dash-gtd-us-east-1-processed-data
+    volumes:
+      - ./daily_exports:/app/daily_exports
   
   data_api_service:
     build:

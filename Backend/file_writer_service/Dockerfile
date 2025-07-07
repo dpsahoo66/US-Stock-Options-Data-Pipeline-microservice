@@ -26,5 +26,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy your code
 COPY . .
+EXPOSE 8003
 
 CMD ["python", "FileWriter.py"]

@@ -37,18 +37,18 @@ services:
     networks:
       - stock_pipeline
 
-  load_balancer:
+  load-balancer:
     image: nginx:latest
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "80:80"
     depends_on:
-      - data_collector
+      - data-collector
     networks:
       - stock_pipeline
 
-  data_collector:
+  data-collector:
     build:
       context: ./data_collector_service
       dockerfile: Dockerfile
@@ -77,7 +77,7 @@ services:
     networks:
       - stock_pipeline
   
-  data_processor:
+  data-processor:
     build:
       context: ./data_processor_service
       dockerfile: Dockerfile
@@ -105,7 +105,7 @@ services:
     networks:
       - stock_pipeline
 
-  database_writer:
+  database-writer:
     build:
       context: ./database_writer_service
       dockerfile: Dockerfile
@@ -134,7 +134,7 @@ services:
     networks:
       - stock_pipeline
 
-  file_writer:
+  file-writer:
     build:
       context: ./file_writer_service    
       dockerfile: Dockerfile
@@ -143,10 +143,12 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - S3_BUCKET_NAME=dash-gtd-us-east-1-processed-data
+    ports:
+      - "8003:8003"
     volumes:
       - ./daily_exports:/app/daily_exports
   
-  data_api_service:
+  data-api-service:
     build:
       context: ./data_api_service
       dockerfile: Dockerfile
@@ -297,7 +299,7 @@ services:
       - stock_pipeline
       - monitoring
   
-  node_exporter:
+  node-exporter:
     image: prom/node-exporter:latest
     container_name: node_exporter
     ports:

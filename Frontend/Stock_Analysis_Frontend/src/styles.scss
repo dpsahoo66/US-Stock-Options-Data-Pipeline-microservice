@@ -1,12 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-html, body {
-  height: 100%;
+body {
+  min-height: 100vh;
   margin: 0;
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #0e0e0e 0%, #1a1a1a 50%, #2a2a2a 100%);
-  color: #D9E1FA;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #181c2f 0%, #232946 100%);
+  color: #e0e6f5;
+  box-sizing: border-box;
 }
 
 /* Global button styling improvements */
@@ -78,4 +79,9 @@ html, body {
 /* Ensure proper spacing for layout */
 .content-area {
   padding-top: 60px !important; /* Account for fixed navbar */
+}
+
+/* Make sure all app containers are transparent by default */
+app-root, .layout-container, .sidenav-container, .content-area {
+  background: transparent !important;
 }

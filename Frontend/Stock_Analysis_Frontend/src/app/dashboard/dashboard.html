@@ -1,78 +1,172 @@
-<div class="dashboard-wrapper">
-  <div class="row">
-    <div class="col-xxl-12 col-xl-12 col-lg-12">
-      <!-- Stock selector -->
-      <mat-card
-        class="stock-selector-card"
-        *ngIf="!isLoading && availableStocks.length > 0"
-      >
-        <mat-card-content>
-          <mat-form-field appearance="outline">
-            <mat-label>Select Stock</mat-label>
-            <mat-select
-              [(value)]="selectedStock"
-              (selectionChange)="onStockChange($event.value)"
-            >
-              <mat-option
-                *ngFor="let stock of availableStocks"
-                [value]="stock"
-              >
-                {{ stock }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </mat-card-content>
-      </mat-card>
+<div *ngIf="error" class="dashboard-error">
+  {{ error }}
+</div>
 
-      <!-- Loading -->
-      <mat-card class="dashboard-card" *ngIf="isLoading">
-        <mat-card-content class="loading-content">
-          <mat-spinner></mat-spinner>
-          <p>Loading stock data…</p>
-        </mat-card-content>
-      </mat-card>
+<div *ngIf="!error">
+  <div class="dashboard-summary-container">
+    <div class="dashboard-summary-header">
+      <span class="back-arrow" routerLink="/">&#8592;</span>
+      <span class="summary-title">Stock Summary</span>
+    </div>
 
-      <!-- Error -->
-      <mat-card
-        class="dashboard-card error-card"
-        *ngIf="error && !isLoading"
-      >
-        <mat-card-content>
-          <div class="error-content">
-            <mat-icon color="warn">error</mat-icon>
-            <h3>Error Loading Data</h3>
-            <p>{{ error }}</p>
-            <button mat-raised-button color="primary" (click)="loadStockData()">
-              Retry
-            </button>
+    <div class="summary-card" *ngIf="stockSummary">
+      <div class="summary-main">
+        <div>
+          <div class="summary-symbol">{{ stockSummary.symbol }}</div>
+          <div class="summary-company">{{ stockSummary.company }}</div>
+        </div>
+        <div class="summary-price-block">
+          <div class="summary-price">${{ stockSummary.price | number:'1.2-2' }}</div>
+          <div class="summary-change" [ngClass]="{'pos': stockSummary.change > 0, 'neg': stockSummary.change < 0}">
+            {{ stockSummary.change > 0 ? '+' : '' }}{{ stockSummary.change | number:'1.2-2' }}
+            <span class="summary-change-pct">
+              ({{ stockSummary.changePct > 0 ? '+' : '' }}{{ stockSummary.changePct | number:'1.2-2' }}%)
+            </span>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
+      <div class="summary-details">
+        <div class="summary-detail"><span>Market Cap</span><b>{{ stockSummary.marketCap }}</b></div>
+        <div class="summary-detail"><span>Volume</span><b>{{ stockSummary.volume | number }}</b></div>
+        <div class="summary-detail"><span>Open</span><b>${{ stockSummary.open | number:'1.2-2' }}</b></div>
+        <div class="summary-detail"><span>Previous Close</span><b>${{ stockSummary.previousClose | number:'1.2-2' }}</b></div>
+        <div class="summary-detail"><span>Day High</span><b>${{ stockSummary.high | number:'1.2-2' }}</b></div>
+        <div class="summary-detail"><span>Day Low</span><b>${{ stockSummary.low | number:'1.2-2' }}</b></div>
+      </div>
+    </div>
 
-      <!-- Chart -->
-      <mat-card
-        class="dashboard-card"
-        *ngIf="!isLoading && !error && chartData.length > 0"
-      >
-        <mat-card-content>
-          <!-- Chart container now referenced by ViewChild -->
-          <div #chartContainer class="chart-container"></div>
-        </mat-card-content>
-      </mat-card>
+    <div class="chart-card">
+      <div class="chart-title">Price Chart</div>
+      <div #chartContainer class="chart-container"></div>
+    </div>
 
-      <!-- No data fallback -->
-      <mat-card
-        class="dashboard-card"
-        *ngIf="!isLoading && !error && chartData.length === 0"
-      >
-        <mat-card-content>
-          <div class="no-data-content">
-            <mat-icon>trending_up</mat-icon>
-            <h3>No Data Available</h3>
-            <p>No stock data available for the selected symbol.</p>
+    <div class="options-card">
+      <div class="options-title">Options Data</div>
+      <div class="options-filters">
+        <select [(ngModel)]="selectedExpiry" class="options-filter-select">
+          <option *ngFor="let date of optionExpiryDates" [value]="date">{{ date }}</option>
+        </select>
+        <select [(ngModel)]="optionViewType" class="options-filter-select">
+          <option value="List">List</option>
+          <option value="Straddle">Straddle</option>
+        </select>
+      </div>
+      <ng-container *ngIf="optionViewType === 'List'">
+        <div class="options-table-title">Calls</div>
+        <div class="list-table-scroll">
+          <table class="options-table" *ngIf="filteredCalls.length > 0">
+            <thead>
+              <tr>
+                <th>Contract</th>
+                <th>Strike</th>
+                <th>Last Price</th>
+                <th>Bid</th>
+                <th>Ask</th>
+                <th>Volume</th>
+                <th>Open Int.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let opt of filteredCalls">
+                <td>{{ opt.contractSymbol }}</td>
+                <td>{{ opt.strike }}</td>
+                <td>{{ opt.lastPrice }}</td>
+                <td>{{ opt.bid }}</td>
+                <td>{{ opt.ask }}</td>
+                <td>{{ opt.volume }}</td>
+                <td>{{ opt.openInterest }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="options-table-placeholder" *ngIf="filteredCalls.length === 0">No call options for this expiry.</div>
+        <div class="options-table-title">Puts</div>
+        <div class="list-table-scroll">
+          <table class="options-table" *ngIf="filteredPuts.length > 0">
+            <thead>
+              <tr>
+                <th>Contract</th>
+                <th>Strike</th>
+                <th>Last Price</th>
+                <th>Bid</th>
+                <th>Ask</th>
+                <th>Volume</th>
+                <th>Open Int.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let opt of filteredPuts">
+                <td>{{ opt.contractSymbol }}</td>
+                <td>{{ opt.strike }}</td>
+                <td>{{ opt.lastPrice }}</td>
+                <td>{{ opt.bid }}</td>
+                <td>{{ opt.ask }}</td>
+                <td>{{ opt.volume }}</td>
+                <td>{{ opt.openInterest }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="options-table-placeholder" *ngIf="filteredPuts.length === 0">No put options for this expiry.</div>
+      </ng-container>
+      <ng-container *ngIf="optionViewType === 'Straddle'">
+        <div class="straddle-tables">
+          <div class="straddle-table-block">
+            <div class="options-table-title">Calls</div>
+            <div class="straddle-table-scroll">
+              <table class="options-table" *ngIf="filteredCalls.length > 0">
+                <thead>
+                  <tr>
+                    <th>Last Price</th>
+                    <th>Change</th>
+                    <th>% Change</th>
+                    <th>Volume</th>
+                    <th>Open Interest</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let opt of filteredCalls">
+                    <td>{{ opt.lastPrice }}</td>
+                    <td [ngClass]="{'pos': opt.change > 0, 'neg': opt.change < 0}">{{ opt.change }}</td>
+                    <td [ngClass]="{'pos': opt.percentChange > 0, 'neg': opt.percentChange < 0}">{{ opt.percentChange }}%</td>
+                    <td>{{ opt.volume }}</td>
+                    <td>{{ opt.openInterest }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="options-table-placeholder" *ngIf="filteredCalls.length === 0">No call options for this expiry.</div>
           </div>
-        </mat-card-content>
-      </mat-card>
+          <div class="straddle-table-block">
+            <div class="options-table-title">Puts</div>
+            <div class="straddle-table-scroll">
+              <table class="options-table" *ngIf="filteredPuts.length > 0">
+                <thead>
+                  <tr>
+                    <th>Strike</th>
+                    <th>Last Price</th>
+                    <th>Change</th>
+                    <th>% Change</th>
+                    <th>Volume</th>
+                    <th>Open Interest</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let opt of filteredPuts">
+                    <td>{{ opt.strike }}</td>
+                    <td>{{ opt.lastPrice }}</td>
+                    <td [ngClass]="{'pos': opt.change > 0, 'neg': opt.change < 0}">{{ opt.change }}</td>
+                    <td [ngClass]="{'pos': opt.percentChange > 0, 'neg': opt.percentChange < 0}">{{ opt.percentChange }}%</td>
+                    <td>{{ opt.volume }}</td>
+                    <td>{{ opt.openInterest }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="options-table-placeholder" *ngIf="filteredPuts.length === 0">No put options for this expiry.</div>
+          </div>
+        </div>
+      </ng-container>
     </div>
   </div>
 </div>

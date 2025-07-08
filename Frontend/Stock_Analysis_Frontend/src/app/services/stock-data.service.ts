@@ -46,4 +46,12 @@ export class StockDataService {
     const params = new HttpParams().set('stock_name', stockName);
     return this.http.get<ApiResponse<StockNamesResponse>>(`${this.API_BASE_URL}/api/stocknames/`, { params });
   }
+
+  /**
+   * Get stock data for a specific symbol
+   */
+  getStockDataBySymbol(symbol: string): Observable<ApiResponse<StockDataResponse>> {
+    const params = new HttpParams().set('symbol', symbol.toUpperCase());
+    return this.http.get<ApiResponse<StockDataResponse>>(`${this.API_BASE_URL}/api/stock-data/`, { params });
+  }
 }

@@ -28,12 +28,13 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("APP_DEBUG")
 
-ALLOWED_HOSTS = ["data_collector", "localhost"]
+ALLOWED_HOSTS = ["data_collector", "localhost","*"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "django_prometheus",
     "collector",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -51,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = "data_collector_service.urls"
@@ -126,7 +129,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'
+KAFKA_BOOTSTRAP_SERVERS = "kafka-controller-headless.default.svc.cluster.local:9092"
 KAFKA_TOPICS = {
     'trigger-daily': os.getenv('KAFKA_TRIGGER_DAILY'),
     'trigger-15min': os.getenv('KAFKA_TRIGGER_15MIN'),

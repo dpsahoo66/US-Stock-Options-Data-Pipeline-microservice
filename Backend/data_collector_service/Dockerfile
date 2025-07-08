@@ -16,6 +16,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+ENV DJANGO_SETTINGS_MODULE=data_collector_service.settings
+
 # Copy application code
 COPY . .
 

@@ -17,9 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+import django_prometheus.exports 
+import os
+
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('api/', include('collector.urls')),
-
+    path("", include("django_prometheus.urls")),
 ]

@@ -29,11 +29,21 @@ class StockDataView(APIView):
             if not cursor.fetchone():
                 raise Exception("StockData table not found in default DB")
 
-            select_query = "SELECT StockName, Date, [Open], High, Low, [Close], Volume FROM StockData"
+            # Check if symbol parameter is provided
+            symbol = request.GET.get('symbol')
+            
+            if symbol:
+                # Filter by specific symbol
+                select_query = "SELECT StockName, Date, [Open], High, Low, [Close], Volume FROM StockData WHERE StockName = ?"
+                cursor.execute(select_query, (symbol.upper(),))
+            else:
+                # Get all stock data
+                select_query = "SELECT StockName, Date, [Open], High, Low, [Close], Volume FROM StockData"
+                cursor.execute(select_query)
+            
             data = []
 
             # Fetch from first database
-            cursor.execute(select_query)
             for row in cursor.fetchall():
                 data.append({
                     'symbol': row.StockName,

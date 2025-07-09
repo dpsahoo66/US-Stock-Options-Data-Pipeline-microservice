@@ -1,0 +1,126 @@
+.landing-bg {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #a18fff 0%, #6f6ee8 100%);
+}
+
+.landing-card {
+  background: #fff;
+  border-radius: 32px;
+  box-shadow: 0 8px 32px rgba(161, 143, 255, 0.15);
+  padding: 3rem 3.5rem 2.5rem 3.5rem;
+  max-width: 700px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.landing-title {
+  color: #7b6ff6;
+  font-size: 2.6rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+}
+
+.landing-subtitle {
+  color: #888;
+  font-size: 1.15rem;
+  margin-bottom: 2.2rem;
+  text-align: center;
+}
+
+.search-card {
+  background: #fafaff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(161, 143, 255, 0.10);
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1.2rem;
+  width: 100%;
+  max-width: 520px;
+  margin-bottom: 2.2rem;
+}
+
+.search-icon {
+  color: #b3a7f6;
+  font-size: 1.5rem;
+  margin-right: 0.7rem;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  color: #444;
+  outline: none;
+  padding: 0.5rem 0.2rem;
+}
+
+.search-button {
+  background: #eae8fc;
+  color: #7b6ff6;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-left: 1rem;
+  box-shadow: none;
+  letter-spacing: 1px;
+}
+
+.popular-stocks {
+  margin-top: 1.2rem;
+  width: 100%;
+}
+
+.popular-stocks h3 {
+  color: #222;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1.1rem;
+  text-align: center;
+}
+
+.stock-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  justify-content: center;
+}
+
+.stock-button {
+  background: #fff;
+  border: 2px solid #eae8fc;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(161, 143, 255, 0.07);
+  padding: 1.1rem 2.1rem;
+  font-size: 1.1rem;
+  color: #7b6ff6;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.stock-button:hover {
+  border-color: #b3a7f6;
+  box-shadow: 0 4px 16px rgba(161, 143, 255, 0.13);
+}
+
+.stock-symbol {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #7b6ff6;
+}
+
+.stock-name {
+  font-size: 0.95rem;
+  color: #888;
+  font-weight: 400;
+  margin-top: 0.2rem;
+}

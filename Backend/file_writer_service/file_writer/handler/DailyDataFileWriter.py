@@ -5,7 +5,7 @@ import boto3
 from datetime import datetime
 import time
 
-class FileWriter:
+class DailyDataFileWriter:
     def __init__(self):
         # Environment Variables
         self.connection_string = os.getenv('AZURE_SQL_CONNECTION_STRING')
@@ -51,14 +51,6 @@ class FileWriter:
             f'stock_data_{self.today_filename}.csv': f"""
                 SELECT * FROM stockdata 
                 WHERE CAST([Date] AS DATE) = '{self.today_str}'
-            """,
-            f'call_options_{self.today_filename}.csv': f"""
-                SELECT * FROM call_options 
-                WHERE CAST([expirationDate] AS DATE) = '{self.today_str}'
-            """,
-            f'put_options_{self.today_filename}.csv': f"""
-                SELECT * FROM put_options 
-                WHERE CAST([expirationDate] AS DATE) = '{self.today_str}'
             """
         }
 
@@ -72,23 +64,20 @@ class FileWriter:
                 print(f"Saved CSV: {local_path} ({len(df)} rows)")
 
                 # Upload to S3
-                self.upload_to_s3(local_path, filename)
+                self.upload_to_s3(local_path, filename,'stock_data')
             except Exception as e:
                 print(f"Failed processing {filename}: {e}")
 
-    def upload_to_s3(self, file_path, s3_key):
+    def upload_to_s3(self, file_path, s3_key, folder_name):
         try:
-            self.s3_client.upload_file(file_path, self.s3_bucket, s3_key)
-            print(f"Uploaded to S3: s3://{self.s3_bucket}/{s3_key}")
+            s3_full_key = f"{folder_name}/{s3_key}"
+            self.s3_client.upload_file(file_path, self.s3_bucket, s3_full_key)
+            print(f"Uploaded to S3: s3://{self.s3_bucket}/{s3_full_key}")
         except Exception as e:
-            print(f" S3 Upload failed for {s3_key}: {e}")
+            print(f"S3 upload failed for {s3_key}: {e}")
 
     def close_connection(self):
         if self.conn:
             self.conn.close()
             print(" Database connection closed.")
 
-if __name__ == "__main__":
-    exporter = FileWriter()
-    exporter.export_data()
-    exporter.close_connection()

@@ -185,6 +185,7 @@ export class Dashboard implements OnInit, AfterViewInit {
   }
 
   onStockChange(selectedStock: string): void {
+    this.isLoading = true;
     this.selectedStock = selectedStock;
     this.updateChartData();
     this.renderStockChart();
@@ -208,6 +209,7 @@ export class Dashboard implements OnInit, AfterViewInit {
   renderStockChart(): void {
     /* guard against empty data or missing element */
     if (!this.chartData.length || !this.chartEl) {
+      this.isLoading = false;
       return;
     }
 
@@ -262,6 +264,7 @@ export class Dashboard implements OnInit, AfterViewInit {
         },
       ],
     } as Highcharts.Options);
+    this.isLoading = false;
   }
 
   searchStock(): void {

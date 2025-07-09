@@ -9,7 +9,7 @@ metadata:
   name: database-writer
 spec:
   ports:
-    - name: "8002"
+    - name: http
       port: 8002
       targetPort: 8002
   selector:

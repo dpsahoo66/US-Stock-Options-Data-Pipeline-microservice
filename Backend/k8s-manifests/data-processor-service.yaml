@@ -8,9 +8,10 @@ metadata:
     io.kompose.service: data-processor
   name: data-processor
 spec:
-  ports:
-    - name: "8001"
-      port: 8001
-      targetPort: 8001
+  type: ClusterIP  
   selector:
     io.kompose.service: data-processor
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001

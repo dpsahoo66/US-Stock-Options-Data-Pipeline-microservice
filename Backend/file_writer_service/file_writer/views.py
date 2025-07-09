@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from .handler.DailyDataFileWriter import DailyDataFileWriter
 # from .handler.RealTimeDataFileWriter import RealTimeDataFileWriter
-# from .handler.OptionsDataFileWriter import OptionsDataFileWriter
+from .handler.OptionsDataFileWriter import OptionsDataFileWriter
 from .handler.HistoricalDataFileWriter import HistoricalDataFileWriter
 
 def store_each_day_data(request):
@@ -25,14 +25,14 @@ def store_each_day_data(request):
 #     except Exception as e:
 #         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-# def store_option_data(request):
-#     try:
-#         writer = OptionsDataFileWriter()
-#         writer.export_data()
-#         writer.close_connection()
-#         return JsonResponse({'status': 'success', 'message': 'Options data stored successfully.'})
-#     except Exception as e:
-#         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+def store_option_data(request):
+    try:
+        writer = OptionsDataFileWriter()
+        writer.export_data()
+        writer.close_connection()
+        return JsonResponse({'status': 'success', 'message': 'Options data stored successfully.'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def store_historical_data(request):
     try:

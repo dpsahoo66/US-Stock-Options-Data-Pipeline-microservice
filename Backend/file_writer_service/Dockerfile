@@ -22,8 +22,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt 
 COPY . .
 EXPOSE 8003
-<<<<<<< Updated upstream
-=======
+
 CMD ["python", "manage.py", "runserver","0.0.0.0:8003"]
->>>>>>> Stashed changes
 

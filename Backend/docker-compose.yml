@@ -143,10 +143,13 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - S3_BUCKET_NAME=dash-gtd-us-east-1-processed-data
+      - INFLUXDB_URL=https://us-east-1-1.aws.cloud2.influxdata.com
+      - INFLUXDB_TOKEN=-p4vPDiJyynco8tjaNhG2ch7A51SHtzN0ta3VsJ6Y1OqVyHtvuAL7K_gKOVmsYV47F_hqaNPlHKOdi6Y_C8Xjw==
+      - INFLUXDB_ORG=US_Stock_Data
+      - INFLUXDB_BUCKET=fifteenmin_stockdata
     ports:
       - "8003:8003"
-    volumes:
-      - ./daily_exports:/app/daily_exports
+
   
   data-api-service:
     build:

@@ -15,9 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django_prometheus import exports
+from prometheus_client import make_asgi_app
+from django.http import HttpResponse
+import prometheus_client
+
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("metrics/", exports.ExportToDjangoView, name="prometheus-django-metrics"),
 ]

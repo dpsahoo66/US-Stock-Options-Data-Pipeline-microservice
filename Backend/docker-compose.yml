@@ -58,7 +58,6 @@ services:
       - TWELVE_DATA_API_3=<enter_api_key3_here>
       - TWELVE_DATA_API_4=<enter_api_key4_here>
       - TWELVE_DATA_API_5=<enter_api_key5_here>
-
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - KAFKA_TRIGGER_DAILY=fetch-trigger-daily
       - KAFKA_TRIGGER_15MIN=fetch-trigger-15min

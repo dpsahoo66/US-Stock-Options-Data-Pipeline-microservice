@@ -18,7 +18,7 @@ from db_writer.utils.logConfig import LogConfig
 # Setup logging
 logger = LogConfig()
 influx = InfluxHandler()
-daily = DailySQLHandler()
+daily = DailySQLHandler() 
 historical = HistoricalSQLHandler()
 options = OptionsSQLHandler()
 
@@ -61,9 +61,9 @@ class Command(BaseCommand):
                         if not isinstance(data, list) or not data:
                             logger.error(f"Invalid data format: {data}")
                             continue
-
+                           
                         # Process based on topic
-                        if os.getenv("RUN_DB_HANDLER") == True:
+                        if os.getenv("RUN_DB_HANDLER") == "True":
                             for attempt in range(max_retries):
                                 try:
                                     if msg.topic() == settings.KAFKA_TOPICS['processed-daily']:

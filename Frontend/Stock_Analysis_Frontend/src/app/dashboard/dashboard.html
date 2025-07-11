@@ -15,20 +15,27 @@
 
 <div class="dashboard-bg">
   <div *ngIf="!error">
-    <div class="dashboard-summary-container">
+    <div class="dashboard-content-container">
       <div class="summary-card" *ngIf="stockSummary">
         <div class="summary-main">
-          <div>
+          <div class="summary-main-left">
             <div class="summary-symbol">{{ stockSummary.symbol }}</div>
             <div class="summary-company">{{ stockSummary.company }}</div>
           </div>
-          <div class="summary-price-block">
-            <div class="summary-price">${{ stockSummary.price | number:'1.2-2' }}</div>
-            <div class="summary-change" [ngClass]="{'pos': stockSummary.change > 0, 'neg': stockSummary.change < 0}">
-              {{ stockSummary.change > 0 ? '+' : '' }}{{ stockSummary.change | number:'1.2-2' }}
-              <span class="summary-change-pct">
-                ({{ stockSummary.changePct > 0 ? '+' : '' }}{{ stockSummary.changePct | number:'1.2-2' }}%)
-              </span>
+          <div class="summary-main-right">
+            <div class="summary-price-block">
+              <div class="summary-price">${{ stockSummary.price | number:'1.2-2' }}</div>
+              <div class="summary-change" [ngClass]="{'pos': stockSummary.change > 0, 'neg': stockSummary.change < 0}">
+                <span *ngIf="stockSummary.change > 0" class="arrow-up">▲</span>
+                <span *ngIf="stockSummary.change < 0" class="arrow-down">▼</span>
+                {{ stockSummary.change > 0 ? '+' : '' }}{{ stockSummary.change | number:'1.2-2' }}
+                <span class="summary-change-pct">
+                  ({{ stockSummary.changePct > 0 ? '+' : '' }}{{ stockSummary.changePct | number:'1.2-2' }}%)
+                </span>
+              </div>
+            </div>
+            <div class="mini-sparkline-placeholder">
+              <!-- Mini sparkline chart will go here -->
             </div>
           </div>
         </div>
@@ -37,16 +44,14 @@
           <div class="summary-detail"><span>Volume</span><b>{{ stockSummary.volume | number }}</b></div>
           <div class="summary-detail"><span>Open</span><b>${{ stockSummary.open | number:'1.2-2' }}</b></div>
           <div class="summary-detail"><span>Previous Close</span><b>${{ stockSummary.previousClose | number:'1.2-2' }}</b></div>
-          <div class="summary-detail"><span>Day High</span><b>${{ stockSummary.high | number:'1.2-2' }}</b></div>
-          <div class="summary-detail"><span>Day Low</span><b>${{ stockSummary.low | number:'1.2-2' }}</b></div>
+          <div class="summary-detail"><span>Day High</span><b>{{ stockSummary.high | number:'1.2-2' }}</b></div>
+          <div class="summary-detail"><span>Day Low</span><b>{{ stockSummary.low | number:'1.2-2' }}</b></div>
         </div>
       </div>
-
       <div class="chart-card">
         <div class="chart-title">Price Chart</div>
         <div #chartContainer class="chart-container"></div>
       </div>
-
       <div class="options-card">
         <div class="options-title">Options Data</div>
         <div class="options-filters">

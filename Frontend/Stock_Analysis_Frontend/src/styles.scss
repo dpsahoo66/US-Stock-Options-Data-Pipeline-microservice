@@ -1,36 +1,69 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+// DARK MODE STOCK MARKET PALETTE
+$background: #181A20;
+$card-bg: #23242B;
+$primary: #8ecae6; // pastel blue
+$accent: #ffe066;  // pastel yellow
+$success: #00E676;
+$error: #FF1744;
+$text-primary: #F5F6FA;
+$text-secondary: #A0A3B1;
+$divider: #282B33;
+$table-row-hover: #22242C;
+
 body {
   min-height: 100vh;
   margin: 0;
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(135deg, #181c2f 0%, #232946 100%);
-  color: #e0e6f5;
+  background: $background !important;
+  color: $text-primary !important;
   box-sizing: border-box;
 }
 
-/* Global button styling improvements */
-.mat-mdc-raised-button {
-  border-radius: 6px !important;
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  
-  &:not(:disabled):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
+// Card and panel backgrounds
+div, .mat-mdc-card, .summary-card, .chart-card, .options-card {
+  background: $card-bg !important;
+  color: $text-primary !important;
+  border: 1px solid $divider !important;
 }
 
-/* Improve Material Select dropdown styling */
+// Headings and titles
+h1, h2, h3, h4, h5, h6, .dashboard-title, .summary-title, .options-title, .chart-title {
+  color: $text-primary !important;
+}
+
+// Secondary text
+.summary-company, .summary-detail span, .options-table-placeholder, .mat-mdc-option {
+  color: $text-secondary !important;
+}
+
+// Table styles
+.options-table th, .options-table td {
+  color: $text-primary !important;
+}
+.options-table tbody tr:hover {
+  background: $table-row-hover !important;
+}
+
+// Positive/negative
+.pos {
+  color: $success !important;
+}
+.neg {
+  color: $error !important;
+}
+
+// Divider/border
+hr, .divider {
+  border-color: $divider !important;
+}
+
+// Material select and dropdowns
 .mat-mdc-select-panel {
-  background: rgba(26, 26, 26, 0.95) !important;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  background: $card-bg !important;
+  border: 1px solid $divider !important;
 }
 
 .mat-mdc-option {
@@ -53,17 +86,17 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: $divider;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 191, 0, 0.5);
+  background: $primary;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 191, 0, 0.7);
+  background: $accent;
 }
 
 /* Fix Material Design dark theme issues */
@@ -84,4 +117,20 @@ body {
 /* Make sure all app containers are transparent by default */
 app-root, .layout-container, .sidenav-container, .content-area {
   background: transparent !important;
+}
+
+// Dropdown border and focus
+.options-filter-select {
+  border: 1.5px solid $primary !important;
+}
+.options-filter-select:focus {
+  border-color: $accent !important;
+}
+
+// Back arrow
+.back-arrow {
+  color: $primary !important;
+}
+.back-arrow:hover {
+  color: $accent !important;
 }

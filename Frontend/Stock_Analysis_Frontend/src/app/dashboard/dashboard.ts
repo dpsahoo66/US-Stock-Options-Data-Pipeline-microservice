@@ -221,11 +221,11 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.chart = Highcharts.stockChart(this.chartEl.nativeElement, {
       chart: {
         type: 'areaspline',
-        backgroundColor: '#181c2f',
+        backgroundColor: '#181A20', // match dark mode
       },
       title: {
         text: `${this.selectedStock} Stock Analysis`,
-        style: { color: '#e0e6f5' },
+        style: { color: '#F5F6FA' },
       },
       rangeSelector: {
         selected: 3,
@@ -239,8 +239,8 @@ export class Dashboard implements OnInit, AfterViewInit {
           { type: 'year',   count: 1, text: '1y', title: 'View 1 year' },
           { type: 'all',                text: 'All', title: 'View all' },
         ],
-        inputStyle: { color: '#e0e6f5', backgroundColor: '#232946' },
-        labelStyle: { color: '#e0e6f5' },
+        inputStyle: { color: '#F5F6FA', backgroundColor: '#23242B' },
+        labelStyle: { color: '#F5F6FA' },
       },
       navigator : { enabled: false },
       scrollbar : { enabled: false },
@@ -248,18 +248,20 @@ export class Dashboard implements OnInit, AfterViewInit {
       accessibility: { enabled: false },
       yAxis: {
         opposite: false,
-        title: { text: 'Price ($)', style: { color: '#e0e6f5' } },
-        labels: { style: { color: '#e0e6f5' } },
-        gridLineColor: '#232946',
+        title: { text: 'Price ($)', style: { color: '#F5F6FA' } },
+        labels: { style: { color: '#F5F6FA' } },
+        gridLineColor: '#23242B',
       },
-      xAxis: { labels: { style: { color: '#e0e6f5' } }, gridLineColor: '#232946' },
+      xAxis: { labels: { style: { color: '#F5F6FA' } }, gridLineColor: '#23242B' },
       series: [
         {
           type : 'areaspline',
           name : `${this.selectedStock} Price`,
           data : this.chartData,
-          fillOpacity: 0.2,
-          color: '#a18fff',
+          fillOpacity: 0.3,
+          color: '#8ecae6', // pastel blue
+          lineColor: '#8ecae6',
+          marker: { fillColor: '#ffe066', lineColor: '#8ecae6', lineWidth: 2 }, // pastel yellow marker
           tooltip: { valueDecimals: 2, valuePrefix: '$' },
         },
       ],
